@@ -1,6 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { jwtDecode } from 'jwt-decode';
+
+interface JWTPayload {
+  userId: string;
+  email: string;
+  role: string;
+  exp: number;
+}
 
 function isTokenExpired(token: string | null): boolean {
   if (!token) return true;
@@ -13,13 +22,51 @@ function isTokenExpired(token: string | null): boolean {
   }
 }
 
-export function useAuthGuard() {
+export function useAuthGuard(requiredRole?: string) {
+  const router = useRouter();
+
   useEffect(() => {
+    const checkAuth = () => {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token || isTokenExpired(token)) {
+          localStorage.removeItem('token');
+          router.push('/auth/login');
+          return;
+        }
+
+        // If a specific role is required, check it
+        if (requiredRole) {
+          const payload = jwtDecode<JWTPayload>(token);
+          
+          if (payload.role !== requiredRole) {
+            // Redirect to the appropriate dashboard based on actual role
+            router.push(`/${payload.role}/dashboard`);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Auth guard error:', error);
+        localStorage.removeItem('token');
+        router.push('/auth/login');
+      }
+    };
+
+    checkAuth();
+  }, [router, requiredRole]);
+}
+
+// Helper function to get user info from token
+export function getUserFromToken(): JWTPayload | null {
+  try {
     const token = localStorage.getItem('token');
-    
     if (!token || isTokenExpired(token)) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      return null;
     }
-  }, []);
+    
+    return jwtDecode<JWTPayload>(token);
+  } catch {
+    return null;
+  }
 }

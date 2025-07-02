@@ -1,26 +1,47 @@
-// app/profile/create-profile/CVExtractor.tsx
+// app/(dashboard)/candidate/profile/create-profile/CVExtractor.tsx
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Eye, Star, X } from 'lucide-react';
 import type { UnifiedProfileData, CVDocument } from '@/lib/data-transformer';
+
+interface Resume {
+  id: string;
+  resume_url: string;
+  is_primary: boolean;
+  is_allow_fetch: boolean;
+  uploaded_at: string;
+  candidate: {
+    first_name: string;
+    last_name: string;
+    user_id: string;
+  };
+}
 
 interface CVExtractorProps {
   onDataExtracted?: (data: UnifiedProfileData) => void;
+  onSectionComplete?: (section: string) => void;
 }
 
-export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
+// Store files temporarily for upload when profile is created
+interface TempCVFile {
+  file: File;
+  extractedData?: UnifiedProfileData;
+  processedAt?: Date;
+}
+
+export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVExtractorProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadedDocument, setUploadedDocument] = useState<CVDocument | null>(null);
+  const [tempFiles, setTempFiles] = useState<TempCVFile[]>([]);
+  const [isProcessingCV, setIsProcessingCV] = useState(false);
   const [extractionStatus, setExtractionStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   
-  const { setValue } = useFormContext<UnifiedProfileData>();
+  const { setValue, getValues } = useFormContext<UnifiedProfileData>();
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -48,7 +69,6 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
 
     setFile(selectedFile);
     setExtractionStatus('idle');
-    setUploadedDocument(null);
   };
 
   const processCV = useCallback(async () => {
@@ -57,17 +77,26 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
       return;
     }
 
-    setIsUploading(true);
+    setIsProcessingCV(true);
     setExtractionStatus('processing');
 
     try {
-      console.log('🚀 Starting CV processing...');
+      console.log('🚀 Starting CV processing for file:', file.name);
       
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      // Create FormData with the file
       const formData = new FormData();
       formData.append('file', file);
 
       const response = await fetch('/api/ai/process-cv', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         body: formData,
       });
 
@@ -83,12 +112,7 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
         throw new Error(result.error || 'CV processing failed');
       }
 
-      const { extractedData, resumeUrl, validation } = result;
-
-      // Set uploaded document info
-      if (extractedData.cv_documents?.[0]) {
-        setUploadedDocument(extractedData.cv_documents[0]);
-      }
+      const { extractedData, validation } = result;
 
       // Populate all form fields with extracted data
       console.log('📝 Populating form fields...');
@@ -96,7 +120,6 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
       // Basic Info
       setValue('first_name', extractedData.first_name || '');
       setValue('last_name', extractedData.last_name || '');
-      setValue('email', extractedData.email || '');
       setValue('phone', extractedData.phone || '');
       setValue('location', extractedData.location || '');
       setValue('linkedin_url', extractedData.linkedin_url || '');
@@ -110,16 +133,16 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
       setValue('current_position', extractedData.current_position || '');
       setValue('industry', extractedData.industry || '');
 
-      // Work Experiences - Use correct field name
-      if (extractedData.work_experiences?.length > 0) {
-        setValue('work_experience', extractedData.work_experiences);
-        console.log('✅ Set work experiences:', extractedData.work_experiences.length);
+      // Work Experiences
+      if (extractedData.work_experience?.length > 0) {
+        setValue('work_experience', extractedData.work_experience);
+        console.log('✅ Set work experiences:', extractedData.work_experience.length);
       }
 
-      // Education - Use correct field name
-      if (extractedData.educations?.length > 0) {
-        setValue('education', extractedData.educations);
-        console.log('✅ Set educations:', extractedData.educations.length);
+      // Education
+      if (extractedData.education?.length > 0) {
+        setValue('education', extractedData.education);
+        console.log('✅ Set education:', extractedData.education.length);
       }
 
       // Certificates
@@ -146,17 +169,45 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
         console.log('✅ Set volunteering:', extractedData.volunteering.length);
       }
 
-      // Skills
-      if (extractedData.skills?.length > 0) {
-        setValue('skills', extractedData.skills);
-        console.log('✅ Set skills:', extractedData.skills.length);
+      // Skills - Handle both simple and candidate skills
+      if (extractedData.candidate_skills?.length > 0) {
+        setValue('candidate_skills', extractedData.candidate_skills);
+        // Also set simple skills array for backward compatibility
+        const skillNames = extractedData.candidate_skills.map(skill => skill.skill_name);
+        setValue('skills', skillNames);
+        console.log('✅ Set skills:', extractedData.candidate_skills.length);
       }
 
-      // CV Documents
-      if (extractedData.cv_documents?.length > 0) {
-        setValue('cv_documents', extractedData.cv_documents);
-        console.log('✅ Set CV documents:', extractedData.cv_documents.length);
+      // Accomplishments
+      if (extractedData.accomplishments?.length > 0) {
+        setValue('accomplishments', extractedData.accomplishments);
+        console.log('✅ Set accomplishments:', extractedData.accomplishments.length);
       }
+
+      // Store the file temporarily for later upload
+      const tempFile: TempCVFile = {
+        file: file,
+        extractedData: extractedData,
+        processedAt: new Date()
+      };
+
+      setTempFiles(prev => [...prev, tempFile]);
+
+      // Create a CVDocument for the form data (will be used when profile is created)
+      const cvDocument: CVDocument = {
+        id: `temp_${Date.now()}`, // Temporary ID
+        resume_url: '', // Will be set after upload
+        original_filename: file.name,
+        file_size: file.size,
+        file_type: file.type,
+        is_primary: tempFiles.length === 0, // First file is primary
+        is_allow_fetch: true,
+        uploaded_at: new Date().toISOString(),
+      };
+
+      // Update cv_documents in form
+      const currentCvDocuments = getValues('cv_documents') || [];
+      setValue('cv_documents', [...currentCvDocuments, cvDocument]);
 
       setExtractionStatus('success');
       
@@ -168,19 +219,42 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
         toast.success('CV processed successfully! All form fields have been populated.');
       }
 
+      // Clear the file input
+      setFile(null);
+      const fileInput = document.getElementById('cv-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+
       // Callback for parent component
       if (onDataExtracted) {
         onDataExtracted(extractedData);
       }
+
+      // Move to next section after successful extraction
+      // if (onSectionComplete) {
+      //   setTimeout(() => {
+      //     onSectionComplete('Work_Experiences');
+      //   }, 1500);
+      // }
 
     } catch (error) {
       console.error('❌ CV processing error:', error);
       setExtractionStatus('error');
       toast.error(error instanceof Error ? error.message : 'Failed to process CV');
     } finally {
-      setIsUploading(false);
+      setIsProcessingCV(false);
     }
-  }, [file, setValue, onDataExtracted]);
+  }, [file, setValue, getValues, onDataExtracted, onSectionComplete, tempFiles.length]);
+
+  const removeTempFile = (index: number) => {
+    setTempFiles(prev => prev.filter((_, i) => i !== index));
+    
+    // Update cv_documents in form
+    const currentCvDocuments = getValues('cv_documents') || [];
+    const updatedCvDocuments = currentCvDocuments.filter((_, i) => i !== index);
+    setValue('cv_documents', updatedCvDocuments);
+    
+    toast.success('File removed');
+  };
 
   const getStatusIcon = () => {
     switch (extractionStatus) {
@@ -204,12 +278,66 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
       case 'error':
         return 'Failed to process CV. Please try again or fill the form manually.';
       default:
-        return 'Upload your CV/Resume to automatically populate your profile information and store the document';
+        return 'Upload your CV/Resume to automatically populate your profile information';
     }
+  };
+
+  // Export functions to manage temp files for profile creation
+  (window as any).getTempCVFiles = () => tempFiles;
+  (window as any).clearTempCVFiles = () => {
+    setTempFiles([]);
+    setValue('cv_documents', []);
   };
 
   return (
     <div className="space-y-6">
+      {/* Show processed files */}
+      {tempFiles.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Processed CV Files</h3>
+          <div className="space-y-3">
+            {tempFiles.map((tempFile, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-4 border rounded-lg bg-green-50"
+              >
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <div>
+                    <p className="font-medium">
+                      {tempFile.file.name}
+                      {index === 0 && (
+                        <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                          Primary
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Processed: {tempFile.processedAt?.toLocaleString()} • {formatFileSize(tempFile.file.size)}
+                    </p>
+                    <p className="text-xs text-green-600">
+                      Data extracted successfully. Will be uploaded when profile is created.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeTempFile(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Upload New Resume */}
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
         <div className="text-center">
           <Upload className="mx-auto h-12 w-12 text-gray-400" />
@@ -233,43 +361,43 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
         </div>
 
         {file && (
-          <div className="mt-4 flex items-center justify-between p-3 bg-gray-50 rounded-md">
-            <div className="flex items-center space-x-3">
-              {getStatusIcon()}
-              <div>
-                <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                <p className="text-xs text-gray-500">
-                  {formatFileSize(file.size)} • {file.type}
-                  {uploadedDocument && (
-                    <span className="ml-2 text-green-600">
-                      ✓ Uploaded at {new Date(uploadedDocument.uploaded_at).toLocaleString()}
-                    </span>
-                  )}
-                </p>
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center justify-between p-3 bg-white rounded-md border">
+              <div className="flex items-center space-x-3">
+                {getStatusIcon()}
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {formatFileSize(file.size)} • {file.type}
+                  </p>
+                </div>
               </div>
             </div>
-            
-            {extractionStatus !== 'success' && (
-              <Button
-                onClick={processCV}
-                disabled={isUploading}
-                size="sm"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  'Process CV'
-                )}
-              </Button>
-            )}
+
+            {/* Process Button */}
+            <Button
+              onClick={processCV}
+              disabled={isProcessingCV}
+              className="w-full"
+            >
+              {isProcessingCV ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing CV...
+                </>
+              ) : (
+                <>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Extract Data from CV
+                </>
+              )}
+            </Button>
           </div>
         )}
       </div>
 
-      {extractionStatus === 'success' && uploadedDocument && (
+      {/* Processing Status */}
+      {extractionStatus === 'success' && (
         <div className="bg-green-50 border border-green-200 rounded-md p-4">
           <div className="flex">
             <CheckCircle className="h-5 w-5 text-green-400" />
@@ -278,12 +406,39 @@ export default function CVExtractor({ onDataExtracted }: CVExtractorProps) {
                 CV processed successfully!
               </h3>
               <div className="mt-2 text-sm text-green-700">
-                <p>Document saved and data extracted. Review and edit the information in each section below.</p>
-                <ul className="mt-1 list-disc list-inside">
-                  <li>Document: {uploadedDocument.original_filename}</li>
-                  <li>Size: {formatFileSize(uploadedDocument.file_size)}</li>
-                  <li>Type: {uploadedDocument.file_type}</li>
-                </ul>
+                <p>Data extracted and populated in form fields. CV file will be uploaded when you create your profile.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {extractionStatus === 'error' && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="flex">
+            <AlertCircle className="h-5 w-5 text-red-400" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">
+                CV processing failed
+              </h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>Unable to extract data from CV. Please fill out the form manually or try uploading a different file.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isProcessingCV && extractionStatus === 'processing' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+          <div className="flex">
+            <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">
+                Processing CV...
+              </h3>
+              <div className="mt-2 text-sm text-blue-700">
+                <p>Extracting information from your resume. This may take a few moments.</p>
               </div>
             </div>
           </div>

@@ -230,7 +230,7 @@ export default function ProjectsForm({
                 <Label htmlFor={`name-${index}`}>Project Name *</Label>
                 <Input
                   id={`name-${index}`}
-                  value={project.name}
+                  value={project.name || ''}
                   onChange={(e) =>
                     handleProjectChange(index, 'name', e.target.value)
                   }
@@ -242,7 +242,7 @@ export default function ProjectsForm({
                 <Label htmlFor={`description-${index}`}>Description *</Label>
                 <Textarea
                   id={`description-${index}`}
-                  value={project.description}
+                  value={project.description || ''}
                   onChange={(e) =>
                     handleProjectChange(index, 'description', e.target.value)
                   }
@@ -279,7 +279,7 @@ export default function ProjectsForm({
                 <Input
                   id={`start_date-${index}`}
                   type="date"
-                  value={project.start_date}
+                  value={project.start_date || ''}
                   onChange={(e) =>
                     handleProjectChange(index, 'start_date', e.target.value)
                   }

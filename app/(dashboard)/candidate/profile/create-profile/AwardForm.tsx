@@ -1,4 +1,3 @@
-// app/profile/create-profile/AwardsForm.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -7,11 +6,40 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useFormContext } from 'react-hook-form';
 import { Plus, Trash2 } from 'lucide-react';
-
 import { Badge } from '@/components/ui/badge';
 import { useState, useEffect } from 'react';
 import { BasicInfoFormValues } from './BasicInfoForm';
 import { DatePickerInput } from '@/components/ui/date-picker';
+
+type Award = {
+  title: string;
+  offered_by: string;
+  associated_with?: string;
+  date?: string;
+  description?: string;
+  media_url?: string;
+  skill_ids: string[];
+};
+
+// Helper function to safely parse date strings
+const parseDate = (dateString?: string): Date | undefined => {
+  if (!dateString) return undefined;
+  
+  const date = new Date(dateString);
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    return undefined;
+  }
+  return date;
+};
+
+// Helper function to format date as ISO string
+const formatDateToISO = (date?: Date): string => {
+  if (!date || isNaN(date.getTime())) {
+    return new Date().toISOString().split('T')[0]; // Return current date in YYYY-MM-DD format
+  }
+  return date.toISOString().split('T')[0]; // Return date in YYYY-MM-DD format
+};
 
 export default function AwardsForm({
   onBack,
@@ -24,39 +52,31 @@ export default function AwardsForm({
   const [techInputs, setTechInputs] = useState<Record<number, string>>({});
   const [isInitialized, setIsInitialized] = useState(false);
   
-  const awards = watch('awards') || [];
+  const awards = watch('awards') as Award[] || [];
 
-  // Initialize with proper data handling - FIXED
   useEffect(() => {
     if (!isInitialized) {
-      const currentAwards = watch('awards');
-      console.log('Current awards in form:', currentAwards); // Debug log
+      const currentAwards = watch('awards') as Award[];
       
-      // Only initialize empty array if no data exists from CV extraction
       if (!currentAwards || currentAwards.length === 0) {
-        console.log('Initializing empty awards array');
-        setValue('awards', [
-          {
-            title: '',
-            associated_with: '',
-            offered_by: '',
-            date: new Date().toISOString(),
-            description: '',
-            media_url: '',
-            skill_ids: [],
-          },
-        ]);
+        setValue('awards', [{
+          title: '',
+          offered_by: '',
+          associated_with: '',
+          date: formatDateToISO(new Date()),
+          description: '',
+          media_url: '',
+          skill_ids: [],
+        }]);
       } else {
-        console.log('Awards data already exists from CV extraction:', currentAwards);
-        // Ensure all awards have required fields with proper defaults
-        const normalizedAwards = currentAwards.map((award) => ({
+        const normalizedAwards = currentAwards.map(award => ({
           title: award.title || '',
-          associated_with: award.associated_with || '',
           offered_by: award.offered_by || '',
-          date: award.date || new Date().toISOString(),
+          associated_with: award.associated_with || '',
+          date: award.date ? formatDateToISO(parseDate(award.date)) : formatDateToISO(new Date()),
           description: award.description || '',
           media_url: award.media_url || '',
-          skill_ids: award.skill_ids || [],
+          skill_ids: Array.isArray(award.skill_ids) ? award.skill_ids : [],
         }));
         setValue('awards', normalizedAwards);
       }
@@ -65,15 +85,14 @@ export default function AwardsForm({
     }
   }, [isInitialized, setValue, watch]);
 
-  // Awards functions
   const addNewAward = () => {
     setValue('awards', [
       ...awards,
       {
         title: '',
-        associated_with: '',
         offered_by: '',
-        date: new Date().toISOString(),
+        associated_with: '',
+        date: formatDateToISO(new Date()),
         description: '',
         media_url: '',
         skill_ids: [],
@@ -83,12 +102,11 @@ export default function AwardsForm({
 
   const removeAward = (index: number) => {
     if (awards.length === 1) {
-      // Don't allow removing the last award, just reset it
       setValue('awards', [{
         title: '',
-        associated_with: '',
         offered_by: '',
-        date: new Date().toISOString(),
+        associated_with: '',
+        date: formatDateToISO(new Date()),
         description: '',
         media_url: '',
         skill_ids: [],
@@ -102,7 +120,7 @@ export default function AwardsForm({
 
   const handleAwardChange = (
     index: number,
-    field: keyof typeof awards[0],
+    field: keyof Award,
     value: any
   ) => {
     const updatedAwards = [...awards];
@@ -111,21 +129,15 @@ export default function AwardsForm({
       [field]: value
     };
     setValue('awards', updatedAwards);
-    console.log(`Updated award ${index} field ${field}:`, value); // Debug log
   };
 
-  // Tech/Skills functions - FIXED
   const handleTechAdd = (index: number) => {
-    const techValue = techInputs[index] || '';
-    if (!techValue.trim()) return;
+    const techValue = techInputs[index]?.trim() || '';
+    if (!techValue) return;
     
     const updatedAwards = [...awards];
-    if (!updatedAwards[index].skill_ids) {
-      updatedAwards[index].skill_ids = [];
-    }
-    
-    if (!updatedAwards[index].skill_ids.includes(techValue.trim())) {
-      updatedAwards[index].skill_ids.push(techValue.trim());
+    if (!updatedAwards[index].skill_ids.includes(techValue)) {
+      updatedAwards[index].skill_ids = [...updatedAwards[index].skill_ids, techValue];
       setValue('awards', updatedAwards);
     }
     
@@ -134,14 +146,15 @@ export default function AwardsForm({
 
   const removeTechSkill = (awardIndex: number, skillIndex: number) => {
     const updatedAwards = [...awards];
-    if (updatedAwards[awardIndex].skill_ids) {
-      updatedAwards[awardIndex].skill_ids.splice(skillIndex, 1);
-      setValue('awards', updatedAwards);
-    }
+    updatedAwards[awardIndex].skill_ids = updatedAwards[awardIndex].skill_ids.filter(
+      (_, i) => i !== skillIndex
+    );
+    setValue('awards', updatedAwards);
   };
 
-  // Debug log for rendering
-  console.log('Rendering awards:', awards);
+  if (!isInitialized) {
+    return <div className="flex justify-center items-center h-64">Loading awards...</div>;
+  }
 
   return (
     <div className="space-y-8">
@@ -152,7 +165,6 @@ export default function AwardsForm({
         </p>
       </div>
 
-      {/* Awards Section */}
       <div className="space-y-6">
         <h3 className="text-xl font-semibold">Awards & Honors</h3>
         
@@ -166,6 +178,7 @@ export default function AwardsForm({
                   size="sm"
                   onClick={() => removeAward(index)}
                   className="text-destructive hover:text-destructive"
+                  type="button"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -176,11 +189,12 @@ export default function AwardsForm({
                   <Label htmlFor={`award-title-${index}`}>Award Title *</Label>
                   <Input
                     id={`award-title-${index}`}
-                    value={award.title || ''}
+                    value={award.title}
                     onChange={(e) =>
                       handleAwardChange(index, 'title', e.target.value)
                     }
                     placeholder="e.g., Employee of the Year"
+                    required
                   />
                 </div>
 
@@ -188,11 +202,12 @@ export default function AwardsForm({
                   <Label htmlFor={`award-offered-by-${index}`}>Awarded By *</Label>
                   <Input
                     id={`award-offered-by-${index}`}
-                    value={award.offered_by || ''}
+                    value={award.offered_by}
                     onChange={(e) =>
                       handleAwardChange(index, 'offered_by', e.target.value)
                     }
                     placeholder="Organization or company name"
+                    required
                   />
                 </div>
 
@@ -211,9 +226,9 @@ export default function AwardsForm({
                 <div>
                   <Label htmlFor={`award-date-${index}`}>Date Received</Label>
                   <DatePickerInput
-                    date={award.date ? new Date(award.date) : undefined}
+                    date={parseDate(award.date)}
                     onSelect={(date) => 
-                      handleAwardChange(index, 'date', date?.toISOString())
+                      handleAwardChange(index, 'date', date ? formatDateToISO(date) : formatDateToISO(new Date()))
                     }
                   />
                 </div>
@@ -234,7 +249,7 @@ export default function AwardsForm({
                 <div className="md:col-span-2">
                   <Label>Skills Demonstrated</Label>
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {award.skill_ids?.map((skill, skillIndex) => (
+                    {award.skill_ids.map((skill, skillIndex) => (
                       <Badge key={skillIndex} variant="secondary">
                         {skill}
                         <button 
@@ -272,7 +287,6 @@ export default function AwardsForm({
             </div>
           ))}
 
-          {/* Always show "Add Another Award" button */}
           <Button
             type="button"
             variant="outline"
