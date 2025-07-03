@@ -8,8 +8,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-
-
 enum UserType {
   candidate
   employer
@@ -269,8 +267,6 @@ enum RemoteWorkPreference {
   none
 }
 
-
-
 model User {
   id                        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email                     String             @unique @db.VarChar(255)
@@ -351,6 +347,8 @@ model Candidate {
   profile_completion_percentage Int?               @default(0)
   created_at                    DateTime?          @default(now())
   updated_at                    DateTime?          @updatedAt
+  
+  // Relationships
   accomplishments               Accomplishment[]
   applications                  Application[]
   awards                        Award[]
@@ -440,26 +438,38 @@ model Skill {
   name             String           @unique @db.VarChar(100)
   category         String?          @db.VarChar(50)
   description      String?
+  is_active        Boolean?         @default(true)
   created_at       DateTime?        @default(now())
+  updated_at       DateTime?        @updatedAt
   candidate_skills CandidateSkill[]
   job_skills       JobSkill[]
 
   @@index([name])
+  @@index([category])
   @@map("skill")
 }
 
 model CandidateSkill {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  candidate_id String    @db.Uuid
-  skill_id     String    @db.Uuid
-  created_at   DateTime? @default(now())
-  updated_at   DateTime? @updatedAt
-  candidate    Candidate @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
-  skill        Skill     @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id        String    @db.Uuid
+  skill_id            String    @db.Uuid
+  skill_source        String?   @db.VarChar(50)
+  proficiency         Int?      @default(50)
+  years_of_experience Float?    @default(0)
+  source_title        String?   @db.VarChar(200)
+  source_company      String?   @db.VarChar(200)
+  source_institution  String?   @db.VarChar(200)
+  source_authority    String?   @db.VarChar(200)
+  source_type         String?   @db.VarChar(50)
+  created_at          DateTime? @default(now())
+  updated_at          DateTime? @updatedAt
+  candidate           Candidate @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+  skill               Skill     @relation(fields: [skill_id], references: [id], onDelete: Cascade)
 
   @@unique([candidate_id, skill_id])
   @@index([candidate_id])
   @@index([skill_id])
+  @@index([skill_source])
   @@map("candidate_skill")
 }
 
@@ -564,18 +574,22 @@ model Certificate {
 }
 
 model Resume {
-  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  candidate_id    String           @db.Uuid
-  is_allow_fetch  Boolean?         @default(true)
-  resume_url      String?
-  is_primary      Boolean?         @default(false)
-  uploaded_at     DateTime?        @default(now())
-  created_at      DateTime?        @default(now())
-  updated_at      DateTime?        @updatedAt
-  accomplishments Accomplishment[]
-  candidate       Candidate        @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id     String           @db.Uuid
+  is_allow_fetch   Boolean?         @default(true)
+  resume_url       String?
+  original_filename String?         @db.VarChar(255)
+  file_size        Int?
+  file_type        String?          @db.VarChar(50)
+  is_primary       Boolean?         @default(false)
+  uploaded_at      DateTime?        @default(now())
+  created_at       DateTime?        @default(now())
+  updated_at       DateTime?        @updatedAt
+  accomplishments  Accomplishment[]
+  candidate        Candidate        @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
 
   @@index([candidate_id])
+  @@index([is_primary])
   @@map("resume")
 }
 

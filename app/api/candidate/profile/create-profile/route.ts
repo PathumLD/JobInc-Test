@@ -1,8 +1,9 @@
 // app/api/candidate/profile/create-profile/route.ts
+// Updated version with UPDATE logic for existing candidates
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
-import { DataTransformer, UnifiedProfileData } from '@/lib/data-transformer';
 
 interface JWTPayload {
   userId: string;
@@ -11,8 +12,158 @@ interface JWTPayload {
   exp: number;
 }
 
+// Helper function to infer skill category
+function inferSkillCategory(skillName: string): string {
+  const skill = skillName.toLowerCase();
+  
+  if (/\b(javascript|typescript|python|java|c\+\+|c#|php|ruby|go|rust|swift|kotlin|react|vue|angular|node\.?js|django|flask|spring|laravel)\b/.test(skill)) {
+    return 'programming';
+  }
+  if (/\b(mysql|postgresql|mongodb|redis|sqlite|oracle|sql server|firebase|dynamodb|cassandra)\b/.test(skill)) {
+    return 'database';
+  }
+  if (/\b(aws|azure|google cloud|gcp|docker|kubernetes|jenkins|git|github|gitlab|terraform|ansible)\b/.test(skill)) {
+    return 'devops';
+  }
+  if (/\b(photoshop|illustrator|figma|sketch|ui\/ux|graphic design|adobe|design)\b/.test(skill)) {
+    return 'design';
+  }
+  if (/\b(tableau|power bi|excel|analytics|machine learning|data analysis|pandas|numpy)\b/.test(skill)) {
+    return 'analytics';
+  }
+  if (/\b(leadership|management|project management|agile|scrum|communication|teamwork)\b/.test(skill)) {
+    return 'management';
+  }
+  return 'other';
+}
+
+// Optimized bulk skill processing
+async function processSkillsInBulk(candidateId: string, candidateSkills: any[]) {
+  console.log('🛠️ Starting bulk skills processing...');
+  
+  if (!candidateSkills?.length) {
+    console.log('⚠️ No skills to process');
+    return 0;
+  }
+
+  // Remove duplicates and validate skills
+  const skillMap = new Map();
+  candidateSkills.forEach((skill: any) => {
+    if (skill.skill_name && skill.skill_name.trim()) {
+      const key = skill.skill_name.toLowerCase().trim();
+      const existing = skillMap.get(key);
+      
+      if (!existing || (skill.proficiency || 0) > (existing.proficiency || 0)) {
+        skillMap.set(key, skill);
+      }
+    }
+  });
+
+  const uniqueSkills = Array.from(skillMap.values());
+  console.log(`📊 Processing ${uniqueSkills.length} unique skills...`);
+
+  // Get all existing skills at once
+  const skillNames = uniqueSkills.map(s => s.skill_name.trim());
+  const existingSkills = await prisma.skill.findMany({
+    where: {
+      name: {
+        in: skillNames,
+        mode: 'insensitive'
+      }
+    }
+  });
+
+  // Create a map of existing skills
+  const existingSkillsMap = new Map();
+  existingSkills.forEach(skill => {
+    existingSkillsMap.set(skill.name.toLowerCase(), skill);
+  });
+
+  // Identify skills that need to be created
+  const skillsToCreate = uniqueSkills.filter(skillData => 
+    !existingSkillsMap.has(skillData.skill_name.toLowerCase().trim())
+  );
+
+  // Bulk create new skills
+  let newSkills: any[] = [];
+  if (skillsToCreate.length > 0) {
+    console.log(`✨ Creating ${skillsToCreate.length} new skills in bulk...`);
+    
+    const newSkillsData = skillsToCreate.map(skillData => ({
+      name: skillData.skill_name.trim(),
+      category: inferSkillCategory(skillData.skill_name),
+      is_active: true
+    }));
+
+    await prisma.skill.createMany({
+      data: newSkillsData,
+      skipDuplicates: true
+    });
+
+    // Fetch the newly created skills
+    newSkills = await prisma.skill.findMany({
+      where: {
+        name: {
+          in: skillsToCreate.map(s => s.skill_name.trim()),
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    console.log(`✅ Created ${newSkills.length} new skills`);
+  }
+
+  // Combine existing and new skills
+  const allSkills = [...existingSkills, ...newSkills];
+  const skillsLookup = new Map();
+  allSkills.forEach(skill => {
+    skillsLookup.set(skill.name.toLowerCase(), skill);
+  });
+
+  // Clear existing candidate skills first (in case of update)
+  await prisma.candidateSkill.deleteMany({
+    where: { candidate_id: candidateId }
+  });
+
+  // Prepare candidate skills data
+  const candidateSkillsData = uniqueSkills.map(skillData => {
+    const skill = skillsLookup.get(skillData.skill_name.toLowerCase().trim());
+    if (!skill) {
+      console.warn(`⚠️ Skill not found: ${skillData.skill_name}`);
+      return null;
+    }
+
+    return {
+      candidate_id: candidateId,
+      skill_id: skill.id,
+      skill_source: skillData.skill_source || 'manual',
+      proficiency: Math.min(Math.max(skillData.proficiency || 60, 0), 100),
+      years_of_experience: Math.min(Math.max(skillData.years_of_experience || 0, 0), 50),
+      source_title: skillData.source_title?.substring(0, 200) || null,
+      source_company: skillData.source_company?.substring(0, 200) || null,
+      source_institution: skillData.source_institution?.substring(0, 200) || null,
+      source_authority: skillData.source_authority?.substring(0, 200) || null,
+      source_type: skillData.source_type || 'manual',
+    };
+  }).filter(Boolean);
+
+  // Bulk create candidate skills
+  if (candidateSkillsData.length > 0) {
+    console.log(`🔗 Creating ${candidateSkillsData.length} candidate skill relationships...`);
+    await prisma.candidateSkill.createMany({
+      data: candidateSkillsData,
+      skipDuplicates: true
+    });
+    console.log(`✅ Successfully created ${candidateSkillsData.length} candidate skills`);
+  }
+
+  return candidateSkillsData.length;
+}
+
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 Profile creation API called');
+
     // 1. Authenticate user
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -34,6 +185,7 @@ export async function POST(request: NextRequest) {
     try {
       payload = jwt.verify(token, process.env.JWT_SECRET) as JWTPayload;
     } catch (error) {
+      console.error('❌ Token verification failed:', error);
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -47,245 +199,167 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Parse and validate request data
-    let profileData: UnifiedProfileData;
-    try {
-      profileData = await request.json();
-    } catch (error) {
+    // 2. Parse request body - No CV files needed since they're uploaded separately
+    const { profileData } = await request.json();
+
+    if (!profileData) {
       return NextResponse.json(
-        { error: 'Invalid JSON data' },
+        { error: 'Profile data is required' },
         { status: 400 }
       );
     }
 
-    // 3. Ensure arrays exist and are properly initialized
-    profileData.work_experience = profileData.work_experience || [];
-    profileData.education = profileData.education || [];
-    profileData.certificates = profileData.certificates || [];
-    profileData.projects = profileData.projects || [];
-    profileData.awards = profileData.awards || [];
-    profileData.volunteering = profileData.volunteering || [];
-    profileData.skills = profileData.skills || [];
-    profileData.accomplishments = profileData.accomplishments || [];
-    profileData.cv_documents = profileData.cv_documents || [];
-
-    // 4. Validate profile data
-    const validation = DataTransformer.validateProfileData(profileData);
-    if (!validation.isValid) {
+    // Validate required fields
+    if (!profileData.first_name || !profileData.last_name) {
       return NextResponse.json(
-        { 
-          error: 'Validation failed',
-          errors: validation.errors
-        },
+        { error: 'First name and last name are required' },
         { status: 400 }
       );
     }
 
-    // 5. Check if candidate exists
-    let candidate = await prisma.candidate.findUnique({
-      where: { user_id: payload.userId }
+    console.log('📋 Profile data received:', {
+      name: `${profileData.first_name} ${profileData.last_name}`,
+      skills: profileData.candidate_skills?.length || 0
     });
 
-    if (!candidate) {
-      candidate = await prisma.candidate.create({
-        data: {
-          user_id: payload.userId,
-          first_name: '',
-          last_name: '',
-          profile_completion_percentage: 0
-        }
-      });
-    }
+    // 3. Get primary resume URL from existing uploaded resumes
+    const primaryResume = await prisma.resume.findFirst({
+      where: { 
+        candidate_id: payload.userId,
+        is_primary: true 
+      }
+    });
 
-    console.log('🚀 Creating profile for user:', payload.userId);
-    console.log('📄 CV documents received:', profileData.cv_documents);
-
-    // 6. Create profile in transaction with increased timeout
+    // 4. Create/Update profile in database transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Update basic candidate info
-      const updatedCandidate = await tx.candidate.update({
-        where: { user_id: payload.userId },
-        data: {
-          first_name: profileData.first_name,
-          last_name: profileData.last_name,
-          phone: profileData.phone || null,
-          location: profileData.location || null,
-          linkedin_url: profileData.linkedin_url || null,
-          github_url: profileData.github_url || null,
-          portfolio_url: profileData.portfolio_url || null,
-          personal_website: profileData.personal_website || null,
-          bio: profileData.bio || null,
-          about: profileData.about || null,
-          title: profileData.title || null,
-          years_of_experience: profileData.years_of_experience || null,
-          current_position: profileData.current_position || null,
-          industry: profileData.industry || null,
-        }
-      });
+      try {
+        // Check if candidate already exists
+        const existingCandidate = await tx.candidate.findUnique({
+          where: { user_id: payload.userId }
+        });
 
-      const results: any = { candidate: updatedCandidate };
-
-      // Batch delete all existing data first (more efficient)
-      await Promise.all([
-        tx.workExperience.deleteMany({ where: { candidate_id: candidate.user_id } }),
-        tx.accomplishment.deleteMany({ where: { candidate_id: candidate.user_id } }),
-        tx.education.deleteMany({ where: { candidate_id: candidate.user_id } }),
-        tx.certificate.deleteMany({ where: { candidate_id: candidate.user_id } }),
-        tx.project.deleteMany({ where: { candidate_id: candidate.user_id } }),
-        tx.award.deleteMany({ where: { candidate_id: candidate.user_id } }),
-        tx.volunteering.deleteMany({ where: { candidate_id: candidate.user_id } }),
-        tx.candidateSkill.deleteMany({ where: { candidate_id: candidate.user_id } }),
-        // Don't delete resumes here - they should already be uploaded via the upload endpoint
-      ]);
-
-      // Handle CV documents/resumes - Updated to handle already uploaded files
-      if (profileData.cv_documents && profileData.cv_documents.length > 0) {
-        console.log('💾 Processing CV documents...');
+        let candidate;
+        let isUpdate = false;
         
-        const validCvDocuments = profileData.cv_documents.filter(doc => 
-          doc.resume_url && doc.resume_url.trim() && doc.original_filename
-        );
-
-        if (validCvDocuments.length > 0) {
-          console.log(`Found ${validCvDocuments.length} valid CV documents with URLs`);
+        if (existingCandidate) {
+          // UPDATE existing candidate with full profile data
+          console.log('👤 Updating existing candidate profile...');
+          isUpdate = true;
           
-          // Check if resumes already exist (they should if uploaded via the new flow)
-          const existingResumes = await tx.resume.findMany({
-            where: { 
-              candidate_id: candidate.user_id,
-              resume_url: { in: validCvDocuments.map(doc => doc.resume_url) }
+          candidate = await tx.candidate.update({
+            where: { user_id: payload.userId },
+            data: {
+              first_name: profileData.first_name,
+              last_name: profileData.last_name,
+              phone: profileData.phone || null,
+              location: profileData.location || null,
+              linkedin_url: profileData.linkedin_url || null,
+              github_url: profileData.github_url || null,
+              portfolio_url: profileData.portfolio_url || null,
+              personal_website: profileData.personal_website || null,
+              bio: profileData.bio || null,
+              about: profileData.about || null,
+              title: profileData.title || null,
+              years_of_experience: profileData.years_of_experience || 0,
+              current_position: profileData.current_position || null,
+              industry: profileData.industry || null,
+              profile_completion_percentage: 75,
+              resume_url: primaryResume?.resume_url || existingCandidate.resume_url,
+              updated_at: new Date(),
             }
           });
-
-          console.log(`Found ${existingResumes.length} existing resumes in database`);
-
-          // If no existing resumes found, create them (fallback)
-          if (existingResumes.length === 0) {
-            console.log('No existing resumes found, creating new records...');
-            
-            // Ensure only one primary resume
-            let hasPrimary = false;
-            const cvDocumentsData = validCvDocuments.map((doc, index) => {
-              const isPrimary = doc.is_primary && !hasPrimary;
-              if (isPrimary) hasPrimary = true;
-              
-              return {
-                candidate_id: candidate.user_id,
-                resume_url: doc.resume_url,
-                is_primary: isPrimary,
-                is_allow_fetch: doc.is_allow_fetch ?? true,
-                uploaded_at: doc.uploaded_at ? new Date(doc.uploaded_at) : new Date(),
-              };
-            });
-
-            // If no primary is set, make the first one primary
-            if (!hasPrimary && cvDocumentsData.length > 0) {
-              cvDocumentsData[0].is_primary = true;
+          console.log('✅ Candidate updated:', candidate.user_id);
+        } else {
+          // CREATE new candidate if doesn't exist
+          console.log('👤 Creating new candidate profile...');
+          candidate = await tx.candidate.create({
+            data: {
+              user_id: payload.userId,
+              first_name: profileData.first_name,
+              last_name: profileData.last_name,
+              phone: profileData.phone || null,
+              location: profileData.location || null,
+              linkedin_url: profileData.linkedin_url || null,
+              github_url: profileData.github_url || null,
+              portfolio_url: profileData.portfolio_url || null,
+              personal_website: profileData.personal_website || null,
+              bio: profileData.bio || null,
+              about: profileData.about || null,
+              title: profileData.title || null,
+              years_of_experience: profileData.years_of_experience || 0,
+              current_position: profileData.current_position || null,
+              industry: profileData.industry || null,
+              profile_completion_percentage: 75,
+              resume_url: primaryResume?.resume_url || null,
             }
-
-            results.resumes = await tx.resume.createMany({
-              data: cvDocumentsData
-            });
-
-            // Update the candidate's resume_url with the primary resume
-            const primaryResumeUrl = cvDocumentsData.find(doc => doc.is_primary)?.resume_url;
-            if (primaryResumeUrl) {
-              await tx.candidate.update({
-                where: { user_id: candidate.user_id },
-                data: { resume_url: primaryResumeUrl }
-              });
-            }
-
-            console.log('✅ CV documents created successfully:', cvDocumentsData.length);
-          } else {
-            // Update candidate's resume_url with the primary resume
-            const primaryResume = existingResumes.find(resume => resume.is_primary) || existingResumes[0];
-            if (primaryResume) {
-              await tx.candidate.update({
-                where: { user_id: candidate.user_id },
-                data: { resume_url: primaryResume.resume_url }
-              });
-            }
-            console.log('✅ Using existing CV documents');
-          }
+          });
+          console.log('✅ Candidate created:', candidate.user_id);
         }
-      }
 
-      // Handle work experiences
-      if (profileData.work_experience.length > 0) {
-        const validExperiences = profileData.work_experience.filter(exp => 
-          exp.title && exp.company
-        );
+        // Clear existing related data if this is an update
+        if (isUpdate) {
+          console.log('🧹 Clearing existing related data for update...');
+          await Promise.all([
+            tx.workExperience.deleteMany({ where: { candidate_id: payload.userId } }),
+            tx.education.deleteMany({ where: { candidate_id: payload.userId } }),
+            tx.certificate.deleteMany({ where: { candidate_id: payload.userId } }),
+            tx.project.deleteMany({ where: { candidate_id: payload.userId } }),
+            tx.award.deleteMany({ where: { candidate_id: payload.userId } }),
+            tx.volunteering.deleteMany({ where: { candidate_id: payload.userId } }),
+            tx.accomplishment.deleteMany({ where: { candidate_id: payload.userId } }),
+            // Note: candidateSkill is cleared in processSkillsInBulk function
+          ]);
+          console.log('✅ Existing related data cleared');
+        }
 
-        if (validExperiences.length > 0) {
-          results.work_experiences = await tx.workExperience.createMany({
-            data: validExperiences.map(exp => ({
-              candidate_id: candidate.user_id,
+        // Create work experiences
+        if (profileData.work_experience?.length > 0) {
+          console.log('💼 Creating work experiences...');
+          await tx.workExperience.createMany({
+            data: profileData.work_experience.map((exp: any) => ({
+              candidate_id: payload.userId,
               title: exp.title,
               company: exp.company,
-              employment_type: exp.employment_type,
-              is_current: exp.is_current,
-              start_date: exp.start_date ? new Date(exp.start_date) : null,
+              employment_type: exp.employment_type || 'full_time',
+              is_current: exp.is_current || false,
+              start_date: new Date(exp.start_date),
               end_date: exp.end_date ? new Date(exp.end_date) : null,
               location: exp.location || null,
               description: exp.description || null,
-              skill_ids: [],
+              job_source: exp.job_source || '',
+              skill_ids: exp.skill_ids || [],
+              media_url: exp.media_url || '',
             }))
           });
+          console.log(`✅ Created ${profileData.work_experience.length} work experiences`);
         }
-      }
 
-      // Handle accomplishments (if they don't need work_experience_id linking)
-      if (profileData.accomplishments && profileData.accomplishments.length > 0) {
-        const validAccomplishments = profileData.accomplishments.filter(acc => 
-          acc.title && acc.description
-        );
-
-        if (validAccomplishments.length > 0) {
-          results.accomplishments = await tx.accomplishment.createMany({
-            data: validAccomplishments.map(acc => ({
-              candidate_id: candidate.user_id,
-              work_experience_id: null, // Simplified - handle linking separately if needed
-              title: acc.title,
-              description: acc.description,
-            }))
-          });
-        }
-      }
-
-      // Handle educations
-      if (profileData.education.length > 0) {
-        const validEducations = profileData.education.filter(edu => 
-          edu.degree_diploma && edu.university_school
-        );
-
-        if (validEducations.length > 0) {
-          results.educations = await tx.education.createMany({
-            data: validEducations.map(edu => ({
-              candidate_id: candidate.user_id,
+        // Create education
+        if (profileData.education?.length > 0) {
+          console.log('🎓 Creating education records...');
+          await tx.education.createMany({
+            data: profileData.education.map((edu: any) => ({
+              candidate_id: payload.userId,
               degree_diploma: edu.degree_diploma,
               university_school: edu.university_school,
               field_of_study: edu.field_of_study || null,
-              start_date: edu.start_date ? new Date(edu.start_date) : null,
+              start_date: new Date(edu.start_date),
               end_date: edu.end_date ? new Date(edu.end_date) : null,
               grade: edu.grade || null,
+              activities_societies: edu.activities_societies || '',
               skill_ids: edu.skill_ids || [],
-              media_url: edu.media_url || null,
+              media_url: edu.media_url || '',
             }))
           });
+          console.log(`✅ Created ${profileData.education.length} education records`);
         }
-      }
 
-      // Handle certificates
-      if (profileData.certificates.length > 0) {
-        const validCertificates = profileData.certificates.filter(cert => 
-          cert.name && cert.issuing_authority
-        );
-
-        if (validCertificates.length > 0) {
-          results.certificates = await tx.certificate.createMany({
-            data: validCertificates.map(cert => ({
-              candidate_id: candidate.user_id,
+        // Create certificates
+        if (profileData.certificates?.length > 0) {
+          console.log('📜 Creating certificates...');
+          await tx.certificate.createMany({
+            data: profileData.certificates.map((cert: any) => ({
+              candidate_id: payload.userId,
               name: cert.name,
               issuing_authority: cert.issuing_authority,
               issue_date: cert.issue_date ? new Date(cert.issue_date) : null,
@@ -294,22 +368,19 @@ export async function POST(request: NextRequest) {
               credential_url: cert.credential_url || null,
               description: cert.description || null,
               media_url: cert.media_url || null,
-              skill_ids: [],
             }))
           });
+          console.log(`✅ Created ${profileData.certificates.length} certificates`);
         }
-      }
 
-      // Handle projects
-      if (profileData.projects.length > 0) {
-        const validProjects = profileData.projects.filter(proj => proj.name);
-
-        if (validProjects.length > 0) {
-          results.projects = await tx.project.createMany({
-            data: validProjects.map(proj => ({
-              candidate_id: candidate.user_id,
+        // Create projects
+        if (profileData.projects?.length > 0) {
+          console.log('🚀 Creating projects...');
+          await tx.project.createMany({
+            data: profileData.projects.map((proj: any) => ({
+              candidate_id: payload.userId,
               name: proj.name,
-              description: proj.description || null,
+              description: proj.description,
               start_date: proj.start_date ? new Date(proj.start_date) : null,
               end_date: proj.end_date ? new Date(proj.end_date) : null,
               is_current: proj.is_current || false,
@@ -319,119 +390,177 @@ export async function POST(request: NextRequest) {
               tools: proj.tools || [],
               methodologies: proj.methodologies || [],
               is_confidential: proj.is_confidential || false,
-              can_share_details: proj.can_share_details || true,
+              can_share_details: proj.can_share_details !== false,
               url: proj.url || null,
               repository_url: proj.repository_url || null,
               media_urls: proj.media_urls || [],
               skills_gained: proj.skills_gained || [],
             }))
           });
+          console.log(`✅ Created ${profileData.projects.length} projects`);
         }
-      }
 
-      // Handle awards
-      if (profileData.awards.length > 0) {
-        const validAwards = profileData.awards
-          .filter(award => award.title && award.title.trim() && 
-                          award.offered_by && award.offered_by.trim())
-          .map(award => ({
-            candidate_id: candidate.user_id,
-            title: award.title.trim(),
-            offered_by: award.offered_by.trim(),
-            associated_with: award.associated_with?.trim() || null,
-            date: award.date ? new Date(award.date) : null,
-            description: award.description?.trim() || null,
-            media_url: award.media_url?.trim() || null,
-          }));
-
-        if (validAwards.length > 0) {
-          results.awards = await tx.award.createMany({
-            data: validAwards
+        // Create awards
+        if (profileData.awards?.length > 0) {
+          console.log('🏆 Creating awards...');
+          await tx.award.createMany({
+            data: profileData.awards.map((award: any) => ({
+              candidate_id: payload.userId,
+              title: award.title,
+              offered_by: award.offered_by,
+              associated_with: award.associated_with || null,
+              date: new Date(award.date),
+              description: award.description || null,
+              media_url: award.media_url || null,
+              skill_ids: award.skill_ids || [],
+            }))
           });
+          console.log(`✅ Created ${profileData.awards.length} awards`);
         }
-      }
 
-      // Handle volunteering
-      if (profileData.volunteering.length > 0) {
-        const validVolunteering = profileData.volunteering.filter(vol => 
-          vol.role && vol.institution
-        );
-
-        if (validVolunteering.length > 0) {
-          results.volunteering = await tx.volunteering.createMany({
-            data: validVolunteering.map(vol => ({
-              candidate_id: candidate.user_id,
+        // Create volunteering
+        if (profileData.volunteering?.length > 0) {
+          console.log('🤝 Creating volunteering records...');
+          await tx.volunteering.createMany({
+            data: profileData.volunteering.map((vol: any) => ({
+              candidate_id: payload.userId,
               role: vol.role,
               institution: vol.institution,
               cause: vol.cause || null,
-              start_date: vol.start_date ? new Date(vol.start_date) : null,
+              start_date: new Date(vol.start_date),
               end_date: vol.end_date ? new Date(vol.end_date) : null,
-              is_current: vol.is_current,
+              is_current: vol.is_current || false,
               description: vol.description || null,
               media_url: vol.media_url || null,
             }))
           });
+          console.log(`✅ Created ${profileData.volunteering.length} volunteering records`);
         }
-      }
 
-      // Handle skills - this needs individual processing for upsert
-      if (profileData.skills.length > 0) {
-        const validSkills = profileData.skills.filter(skill => skill.trim());
+        // Create accomplishments (only if they have valid data)
+        if (profileData.accomplishments?.length > 0) {
+          console.log('🎯 Creating accomplishments...');
+          
+          const validAccomplishments = profileData.accomplishments.filter((acc: any) => 
+            acc.title && acc.title.trim() && acc.description && acc.description.trim()
+          );
 
-        if (validSkills.length > 0) {
-          const skillPromises = validSkills.map(async (skillName) => {
-            const skill = await tx.skill.upsert({
-              where: { name: skillName.trim() },
-              update: {},
-              create: { name: skillName.trim() }
+          if (validAccomplishments.length > 0) {
+            await tx.accomplishment.createMany({
+              data: validAccomplishments.map((acc: any) => ({
+                candidate_id: payload.userId,
+                title: acc.title.trim().substring(0, 300),
+                description: acc.description.trim(),
+                work_experience_id: acc.work_experience_id || null,
+                resume_id: null,
+              }))
             });
-
-            return tx.candidateSkill.create({
-              data: {
-                candidate_id: candidate.user_id,
-                skill_id: skill.id
-              },
-              include: { skill: true }
-            });
-          });
-
-          results.skills = await Promise.all(skillPromises);
+            console.log(`✅ Created ${validAccomplishments.length} accomplishments`);
+          }
         }
-      }
 
-      return results;
+        return { candidate, isUpdate };
+
+      } catch (dbError) {
+        console.error('❌ Database transaction error:', dbError);
+        throw dbError;
+      }
     }, {
-      timeout: 120000, // Increase timeout to 60 seconds
+      timeout: 10000,
     });
 
-    console.log('✅ Profile created successfully');
+    console.log(`✅ Profile ${result.isUpdate ? 'updated' : 'created'} successfully`);
 
-    return NextResponse.json({
+    // 5. Process skills OUTSIDE of transaction to avoid timeout
+    let skillsCreated = 0;
+    try {
+      if (profileData.candidate_skills?.length > 0) {
+        skillsCreated = await processSkillsInBulk(payload.userId, profileData.candidate_skills);
+      }
+    } catch (skillsError) {
+      console.error('⚠️ Skills processing failed:', skillsError);
+      // Don't fail the entire request if skills fail
+    }
+
+    // 6. Update profile completion percentage based on data
+    const finalCompletionPercentage = skillsCreated > 0 ? 90 : 85;
+    await prisma.candidate.update({
+      where: { user_id: payload.userId },
+      data: { 
+        profile_completion_percentage: finalCompletionPercentage
+      }
+    });
+
+    // 7. Get uploaded CVs for response
+    const uploadedCVs = await prisma.resume.findMany({
+      where: { candidate_id: payload.userId },
+      orderBy: [
+        { is_primary: 'desc' },
+        { uploaded_at: 'desc' }
+      ]
+    });
+
+    // 8. Prepare response
+    const response = {
       success: true,
-      message: 'Profile created successfully',
-      data: result
-    }, { status: 201 });
+      message: `Profile ${result.isUpdate ? 'updated' : 'created'} successfully`,
+      data: {
+        candidate: result.candidate,
+        skillsCreated,
+        isUpdate: result.isUpdate,
+        uploadedCVs: uploadedCVs.map(cv => ({
+          id: cv.id,
+          resume_url: cv.resume_url,
+          original_filename: cv.original_filename || 'CV.pdf',
+          file_size: cv.file_size || 0,
+          file_type: cv.file_type || 'application/pdf',
+          is_primary: cv.is_primary,
+          is_allow_fetch: cv.is_allow_fetch,
+          uploaded_at: cv.uploaded_at.toISOString(),
+        }))
+      }
+    };
+
+    console.log('🎉 Profile processing completed:', {
+      candidateId: result.candidate.user_id,
+      action: result.isUpdate ? 'updated' : 'created',
+      skillsCreated,
+      uploadedCVs: uploadedCVs.length
+    });
+
+    return NextResponse.json(response, { status: result.isUpdate ? 200 : 201 });
 
   } catch (error) {
-    console.error('❌ Profile creation error:', error);
+    console.error('❌ Profile creation/update error:', error);
     
     if (error instanceof Error) {
       if (error.message.includes('Unique constraint')) {
         return NextResponse.json(
-          { error: 'Duplicate data error' },
+          { error: 'Profile with this information already exists' },
           { status: 409 }
         );
       }
-      if (error.message.includes('Transaction timeout')) {
+
+      if (error.message.includes('required')) {
         return NextResponse.json(
-          { error: 'Operation took too long. Please try again with smaller data sets.' },
+          { error: error.message },
+          { status: 400 }
+        );
+      }
+
+      if (error.message.includes('timeout') || error.code === 'P2028') {
+        return NextResponse.json(
+          { error: 'Transaction timeout. Please try again with fewer skills or data.' },
           { status: 408 }
         );
       }
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Failed to create/update profile',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

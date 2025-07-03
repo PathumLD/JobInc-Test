@@ -85,12 +85,18 @@ interface CandidateSkill {
   skill_name: string;
   skill_source: string;
   proficiency: number;
+  years_of_experience?: number;
+  source_title?: string;
+  source_company?: string;
+  source_institution?: string;
+  source_authority?: string;
+  source_type?: string;
 }
 
 interface Accomplishment {
   title: string;
   description: string;
-  work_experience_index?: number;
+  work_experience_id?: string | null;
 }
 
 interface ExtractedData {
@@ -234,7 +240,7 @@ Extract candidate profile data from this CV and return STRICT JSON matching the 
     {
       "title": "string",
       "description": "string",
-      "work_experience_index": "number|null"
+      "work_experience_id": "string|null"
     }
   ]
 }
@@ -252,9 +258,76 @@ RULES:
 10. Map volunteering organizations to "institution" field
 `;
 
+// Enhanced skill extraction functions
+function extractSkillsFromText(text: string): string[] {
+  if (!text) return [];
+  
+  const commonSkills = [
+    // Programming Languages
+    'JavaScript', 'TypeScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Rust', 'Swift', 'Kotlin', 'Scala', 'R', 'MATLAB', 'C', 'Perl', 'Objective-C',
+    
+    // Frontend Technologies
+    'React', 'Vue.js', 'Vue', 'Angular', 'HTML', 'CSS', 'Sass', 'SCSS', 'Less', 'Bootstrap', 'Tailwind CSS', 'Tailwind', 'jQuery', 'Next.js', 'Nuxt.js', 'Svelte', 'Ember.js',
+    
+    // Backend Technologies
+    'Node.js', 'Express.js', 'Express', 'Django', 'Flask', 'FastAPI', 'Spring Boot', 'Spring', 'Laravel', 'Ruby on Rails', 'Rails', 'ASP.NET', '.NET Core', 'NestJS',
+    
+    // Databases
+    'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 'Oracle', 'SQL Server', 'Firebase', 'Firestore', 'DynamoDB', 'Cassandra', 'Neo4j', 'MariaDB', 'CouchDB',
+    
+    // Cloud & DevOps
+    'AWS', 'Azure', 'Google Cloud', 'GCP', 'Docker', 'Kubernetes', 'Jenkins', 'Git', 'GitHub', 'GitLab', 'CI/CD', 'Terraform', 'Ansible', 'Chef', 'Puppet', 'Vagrant',
+    
+    // Data & Analytics
+    'SQL', 'Excel', 'Tableau', 'Power BI', 'Pandas', 'NumPy', 'Machine Learning', 'Data Analysis', 'TensorFlow', 'PyTorch', 'Scikit-learn', 'Apache Spark', 'Hadoop',
+    
+    // Mobile Development
+    'React Native', 'Flutter', 'iOS', 'Android', 'Xamarin', 'Ionic', 'Cordova', 'PhoneGap',
+    
+    // Testing
+    'Jest', 'Cypress', 'Selenium', 'JUnit', 'TestNG', 'Mocha', 'Jasmine', 'Playwright', 'Puppeteer',
+    
+    // Project Management & Methodologies
+    'Agile', 'Scrum', 'Kanban', 'JIRA', 'Trello', 'Asana', 'Waterfall', 'Lean', 'Six Sigma', 'PMP',
+    
+    // Design & UX
+    'Photoshop', 'Illustrator', 'Figma', 'Sketch', 'UI/UX Design', 'UI Design', 'UX Design', 'Graphic Design', 'Adobe Creative Suite', 'InDesign',
+    
+    // Soft Skills
+    'Leadership', 'Communication', 'Project Management', 'Problem Solving', 'Teamwork', 'Time Management', 'Critical Thinking', 'Analytical Thinking', 'Creativity',
+    
+    // Business & Finance
+    'Microsoft Office', 'Excel', 'PowerPoint', 'Word', 'QuickBooks', 'SAP', 'Salesforce', 'Financial Analysis', 'Accounting', 'Budgeting', 'Forecasting'
+  ];
+  
+  const foundSkills: string[] = [];
+  const lowerText = text.toLowerCase();
+  
+  commonSkills.forEach(skill => {
+    // Use word boundaries to avoid partial matches
+    const regex = new RegExp(`\\b${skill.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    if (regex.test(lowerText)) {
+      foundSkills.push(skill);
+    }
+  });
+  
+  return [...new Set(foundSkills)]; // Remove duplicates
+}
+
+function calculateDuration(startDate: string | null, endDate: string | null): number {
+  if (!startDate) return 0;
+  
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : new Date();
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffYears = diffTime / (1000 * 60 * 60 * 24 * 365.25);
+  
+  return Math.min(Math.round(diffYears * 10) / 10, 20); // Round to 1 decimal, cap at 20 years
+}
+
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 CV Processing API called');
+    console.log(' CV Processing API called');
 
     // 1. Authenticate user
     const authHeader = request.headers.get('authorization');
@@ -277,7 +350,7 @@ export async function POST(request: NextRequest) {
     try {
       payload = jwt.verify(token, process.env.JWT_SECRET) as JWTPayload;
     } catch (error) {
-      console.error('❌ Token verification failed:', error);
+      console.error(' Token verification failed:', error);
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -319,7 +392,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('📤 Processing CV:', file.name, 'Size:', file.size);
+    console.log(' Processing CV:', file.name, 'Size:', file.size);
 
     try {
       // 4. Process CV with Gemini AI
@@ -348,7 +421,7 @@ export async function POST(request: NextRequest) {
       const response = await result.response;
       const text = response.text();
       
-      console.log('🤖 AI response received, length:', text.length);
+      console.log(' AI response received, length:', text.length);
       
       // Parse the JSON response
       let rawExtractedData: ExtractedData;
@@ -360,15 +433,15 @@ export async function POST(request: NextRequest) {
           .trim();
         
         rawExtractedData = JSON.parse(cleanedText);
-        console.log('✅ JSON parsed successfully');
+        console.log(' JSON parsed successfully');
       } catch (parseError) {
-        console.error('❌ Failed to parse AI response:', text);
+        console.error(' Failed to parse AI response:', text);
         throw new Error('Invalid AI response format');
       }
 
-      console.log('✅ Data extracted successfully');
+      console.log(' Data extracted successfully');
 
-      // 5. Transform to UnifiedProfileData format (matching your frontend expectations)
+      // 5. ENHANCED: Transform to UnifiedProfileData format with proper skills tracking
       const normalizedData = {
         // Basic info mapping
         first_name: rawExtractedData.basic_info.first_name || '',
@@ -469,26 +542,147 @@ export async function POST(request: NextRequest) {
           media_url: vol.media_url,
         })),
 
-        // Skills - simple array for backward compatibility
-        skills: rawExtractedData.skills.map(skill => skill.name),
+        // Skills - simple array for backward compatibility (will be populated from candidate_skills)
+        skills: [],
 
-        // Candidate skills - with proficiency data
-        candidate_skills: rawExtractedData.skills.map(skill => ({
-          skill_name: skill.name,
-          skill_source: 'cv_extraction',
-          proficiency: skill.proficiency || 50,
-        })),
+        // ENHANCED: Candidate skills with proper source tracking
+        candidate_skills: [
+          // Skills from work experiences
+          ...rawExtractedData.work_experiences.flatMap((exp, expIndex) => {
+            const expSkills = [
+              ...extractSkillsFromText(exp.title || ''),
+              ...extractSkillsFromText(exp.description || ''),
+              ...extractSkillsFromText(exp.company || '')
+            ];
+            
+            return expSkills.map(skillName => ({
+              skill_name: skillName,
+              skill_source: 'work_experience',
+              proficiency: 70,
+              years_of_experience: calculateDuration(exp.start_date, exp.end_date),
+              source_title: exp.title,
+              source_company: exp.company,
+              source_type: 'work_experience'
+            }));
+          }),
+          
+          // Skills from education
+          ...rawExtractedData.educations.flatMap((edu, eduIndex) => {
+            const eduSkills = [
+              ...extractSkillsFromText(edu.field_of_study || ''),
+              ...extractSkillsFromText(edu.degree_diploma || '')
+            ];
+            
+            return eduSkills.map(skillName => ({
+              skill_name: skillName,
+              skill_source: 'education',
+              proficiency: 60,
+              years_of_experience: calculateDuration(edu.start_date, edu.end_date),
+              source_title: edu.degree_diploma,
+              source_institution: edu.university_school,
+              source_type: 'education'
+            }));
+          }),
+          
+          // Skills from projects
+          ...rawExtractedData.projects.flatMap((proj, projIndex) => {
+            const projSkills = [
+              ...(proj.technologies || []),
+              ...(proj.tools || []),
+              ...(proj.skills_gained || []),
+              ...extractSkillsFromText(proj.description || '')
+            ];
+            
+            return projSkills.map(skillName => ({
+              skill_name: skillName,
+              skill_source: 'project',
+              proficiency: 65,
+              years_of_experience: calculateDuration(proj.start_date, proj.end_date),
+              source_title: proj.name,
+              source_type: 'project'
+            }));
+          }),
+          
+          // Skills from certificates
+          ...rawExtractedData.certificates.flatMap((cert, certIndex) => {
+            const certSkills = [
+              ...extractSkillsFromText(cert.name || ''),
+              ...extractSkillsFromText(cert.description || '')
+            ];
+            
+            return certSkills.map(skillName => ({
+              skill_name: skillName,
+              skill_source: 'certificate',
+              proficiency: 75,
+              years_of_experience: calculateDuration(cert.issue_date, null),
+              source_title: cert.name,
+              source_authority: cert.issuing_authority,
+              source_type: 'certificate'
+            }));
+          }),
+          
+          // Skills from awards
+          ...rawExtractedData.awards.flatMap((award, awardIndex) => {
+            const awardSkills = [
+              ...extractSkillsFromText(award.title || ''),
+              ...extractSkillsFromText(award.description || '')
+            ];
+            
+            return awardSkills.map(skillName => ({
+              skill_name: skillName,
+              skill_source: 'award',
+              proficiency: 80,
+              years_of_experience: 0,
+              source_title: award.title,
+              source_authority: award.offered_by,
+              source_type: 'award'
+            }));
+          }),
+          
+          // Direct skills from CV skills section
+          ...rawExtractedData.skills.map(skill => ({
+            skill_name: typeof skill === 'string' ? skill : skill.name || '',
+            skill_source: 'cv_skills_section',
+            proficiency: typeof skill === 'object' && skill.proficiency ? skill.proficiency : 60,
+            years_of_experience: 0,
+            source_title: 'Skills Section',
+            source_type: 'direct'
+          }))
+        ].filter(skill => 
+          skill.skill_name && 
+          skill.skill_name.trim().length > 1 && 
+          skill.skill_name.length <= 100
+        ),
 
         // Accomplishments
-        accomplishments: rawExtractedData.accomplishments.map(acc => ({
-          title: acc.title,
-          description: acc.description,
-          work_experience_index: acc.work_experience_index,
-        })),
+        accomplishments: (rawExtractedData.accomplishments || [])
+        .map(acc => ({
+          title: acc.title || '',
+          description: acc.description || '',
+          work_experience_id: acc.work_experience_id || null, // Fixed field name
+        }))
+        .filter(acc => 
+          acc.title && acc.title.trim().length > 0 && 
+          acc.description && acc.description.trim().length > 0
+        ),
 
         // Empty arrays for sections not extracted
         cv_documents: [], // Will be populated when file is uploaded
       };
+
+      // Remove duplicate skills (keep the one with highest proficiency)
+      const skillMap = new Map<string, CandidateSkill>();
+      normalizedData.candidate_skills.forEach(skill => {
+        const existing = skillMap.get(skill.skill_name.toLowerCase());
+        if (!existing || skill.proficiency > existing.proficiency) {
+          skillMap.set(skill.skill_name.toLowerCase(), skill);
+        }
+      });
+      
+      normalizedData.candidate_skills = Array.from(skillMap.values());
+      
+      // Populate simple skills array from candidate_skills
+      normalizedData.skills = normalizedData.candidate_skills.map(skill => skill.skill_name);
 
       // 6. Simple validation
       const validation = {
@@ -506,7 +700,13 @@ export async function POST(request: NextRequest) {
         validation.errors.push('No work experience or education information found');
       }
 
-      console.log('✅ CV processing completed successfully');
+      console.log(' CV processing completed successfully');
+      console.log(' Skills extracted by source:', 
+        normalizedData.candidate_skills.reduce((acc, skill) => {
+          acc[skill.skill_source] = (acc[skill.skill_source] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
+      );
 
       return NextResponse.json({
         success: true,
@@ -521,7 +721,7 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (processingError) {
-      console.error('❌ CV processing error:', processingError);
+      console.error(' CV processing error:', processingError);
       return NextResponse.json(
         { 
           error: 'Failed to process CV',
@@ -532,7 +732,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('❌ CV upload error:', error);
+    console.error(' CV upload error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
