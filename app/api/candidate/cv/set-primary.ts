@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       return updatedResume;
     });
 
-    console.log('✅ Primary resume updated:', resumeId);
+    console.log(' Primary resume updated:', resumeId);
 
     return NextResponse.json({
       success: true,
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Set primary resume error:', error);
+    console.error(' Set primary resume error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

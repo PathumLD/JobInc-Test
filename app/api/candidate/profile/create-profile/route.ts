@@ -39,10 +39,10 @@ function inferSkillCategory(skillName: string): string {
 
 // Optimized bulk skill processing
 async function processSkillsInBulk(candidateId: string, candidateSkills: any[]) {
-  console.log('🛠️ Starting bulk skills processing...');
+  console.log(' Starting bulk skills processing...');
   
   if (!candidateSkills?.length) {
-    console.log('⚠️ No skills to process');
+    console.log(' No skills to process');
     return 0;
   }
 
@@ -60,7 +60,7 @@ async function processSkillsInBulk(candidateId: string, candidateSkills: any[]) 
   });
 
   const uniqueSkills = Array.from(skillMap.values());
-  console.log(`📊 Processing ${uniqueSkills.length} unique skills...`);
+  console.log(` Processing ${uniqueSkills.length} unique skills...`);
 
   // Get all existing skills at once
   const skillNames = uniqueSkills.map(s => s.skill_name.trim());
@@ -87,7 +87,7 @@ async function processSkillsInBulk(candidateId: string, candidateSkills: any[]) 
   // Bulk create new skills
   let newSkills: any[] = [];
   if (skillsToCreate.length > 0) {
-    console.log(`✨ Creating ${skillsToCreate.length} new skills in bulk...`);
+    console.log(` Creating ${skillsToCreate.length} new skills in bulk...`);
     
     const newSkillsData = skillsToCreate.map(skillData => ({
       name: skillData.skill_name.trim(),
@@ -110,7 +110,7 @@ async function processSkillsInBulk(candidateId: string, candidateSkills: any[]) 
       }
     });
 
-    console.log(`✅ Created ${newSkills.length} new skills`);
+    console.log(` Created ${newSkills.length} new skills`);
   }
 
   // Combine existing and new skills
@@ -129,7 +129,7 @@ async function processSkillsInBulk(candidateId: string, candidateSkills: any[]) 
   const candidateSkillsData = uniqueSkills.map(skillData => {
     const skill = skillsLookup.get(skillData.skill_name.toLowerCase().trim());
     if (!skill) {
-      console.warn(`⚠️ Skill not found: ${skillData.skill_name}`);
+      console.warn(` Skill not found: ${skillData.skill_name}`);
       return null;
     }
 
@@ -149,12 +149,12 @@ async function processSkillsInBulk(candidateId: string, candidateSkills: any[]) 
 
   // Bulk create candidate skills
   if (candidateSkillsData.length > 0) {
-    console.log(`🔗 Creating ${candidateSkillsData.length} candidate skill relationships...`);
+    console.log(` Creating ${candidateSkillsData.length} candidate skill relationships...`);
     await prisma.candidateSkill.createMany({
       data: candidateSkillsData,
       skipDuplicates: true
     });
-    console.log(`✅ Successfully created ${candidateSkillsData.length} candidate skills`);
+    console.log(` Successfully created ${candidateSkillsData.length} candidate skills`);
   }
 
   return candidateSkillsData.length;
@@ -162,7 +162,7 @@ async function processSkillsInBulk(candidateId: string, candidateSkills: any[]) 
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 Profile creation API called');
+    console.log(' Profile creation API called');
 
     // 1. Authenticate user
     const authHeader = request.headers.get('authorization');
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
     try {
       payload = jwt.verify(token, process.env.JWT_SECRET) as JWTPayload;
     } catch (error) {
-      console.error('❌ Token verification failed:', error);
+      console.error(' Token verification failed:', error);
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('📋 Profile data received:', {
+    console.log(' Profile data received:', {
       name: `${profileData.first_name} ${profileData.last_name}`,
       skills: profileData.candidate_skills?.length || 0,
       accomplishments: profileData.accomplishments?.length || 0,
@@ -245,7 +245,7 @@ export async function POST(request: NextRequest) {
         
         if (existingCandidate) {
           // UPDATE existing candidate with full profile data
-          console.log('👤 Updating existing candidate profile...');
+          console.log(' Updating existing candidate profile...');
           isUpdate = true;
           
           candidate = await tx.candidate.update({
@@ -270,10 +270,10 @@ export async function POST(request: NextRequest) {
               updated_at: new Date(),
             }
           });
-          console.log('✅ Candidate updated:', candidate.user_id);
+          console.log(' Candidate updated:', candidate.user_id);
         } else {
           // CREATE new candidate if doesn't exist
-          console.log('👤 Creating new candidate profile...');
+          console.log(' Creating new candidate profile...');
           candidate = await tx.candidate.create({
             data: {
               user_id: payload.userId,
@@ -295,12 +295,12 @@ export async function POST(request: NextRequest) {
               resume_url: primaryResume?.resume_url || null,
             }
           });
-          console.log('✅ Candidate created:', candidate.user_id);
+          console.log(' Candidate created:', candidate.user_id);
         }
 
         // Clear existing related data if this is an update
         if (isUpdate) {
-          console.log('🧹 Clearing existing related data for update...');
+          console.log(' Clearing existing related data for update...');
           await Promise.all([
             tx.workExperience.deleteMany({ where: { candidate_id: payload.userId } }),
             tx.education.deleteMany({ where: { candidate_id: payload.userId } }),
@@ -310,14 +310,14 @@ export async function POST(request: NextRequest) {
             tx.volunteering.deleteMany({ where: { candidate_id: payload.userId } }),
             tx.accomplishment.deleteMany({ where: { candidate_id: payload.userId } }),
           ]);
-          console.log('✅ Existing related data cleared');
+          console.log(' Existing related data cleared');
         }
 
         // Create work experiences and store them with their indexes
         const workExperienceMap = new Map(); // Map frontend index to database ID
         
         if (profileData.work_experience?.length > 0) {
-          console.log('💼 Creating work experiences...');
+          console.log(' Creating work experiences...');
           
           for (let i = 0; i < profileData.work_experience.length; i++) {
             const exp = profileData.work_experience[i];
@@ -342,12 +342,12 @@ export async function POST(request: NextRequest) {
             workExperienceMap.set(i, createdExp.id);
           }
           
-          console.log(`✅ Created ${profileData.work_experience.length} work experiences`);
+          console.log(` Created ${profileData.work_experience.length} work experiences`);
         }
 
         // Create other sections (education, certificates, etc.)
         if (profileData.education?.length > 0) {
-          console.log('🎓 Creating education records...');
+          console.log(' Creating education records...');
           await tx.education.createMany({
             data: profileData.education.map((edu: any) => ({
               candidate_id: payload.userId,
@@ -362,11 +362,11 @@ export async function POST(request: NextRequest) {
               media_url: edu.media_url || '',
             }))
           });
-          console.log(`✅ Created ${profileData.education.length} education records`);
+          console.log(` Created ${profileData.education.length} education records`);
         }
 
         if (profileData.certificates?.length > 0) {
-          console.log('📜 Creating certificates...');
+          console.log(' Creating certificates...');
           await tx.certificate.createMany({
             data: profileData.certificates.map((cert: any) => ({
               candidate_id: payload.userId,
@@ -380,11 +380,11 @@ export async function POST(request: NextRequest) {
               media_url: cert.media_url || null,
             }))
           });
-          console.log(`✅ Created ${profileData.certificates.length} certificates`);
+          console.log(` Created ${profileData.certificates.length} certificates`);
         }
 
         if (profileData.projects?.length > 0) {
-          console.log('🚀 Creating projects...');
+          console.log(' Creating projects...');
           await tx.project.createMany({
             data: profileData.projects.map((proj: any) => ({
               candidate_id: payload.userId,
@@ -406,7 +406,7 @@ export async function POST(request: NextRequest) {
               skills_gained: proj.skills_gained || [],
             }))
           });
-          console.log(`✅ Created ${profileData.projects.length} projects`);
+          console.log(` Created ${profileData.projects.length} projects`);
         }
 
         if (profileData.awards?.length > 0) {
@@ -423,11 +423,11 @@ export async function POST(request: NextRequest) {
               skill_ids: award.skill_ids || [],
             }))
           });
-          console.log(`✅ Created ${profileData.awards.length} awards`);
+          console.log(` Created ${profileData.awards.length} awards`);
         }
 
         if (profileData.volunteering?.length > 0) {
-          console.log('🤝 Creating volunteering records...');
+          console.log(' Creating volunteering records...');
           await tx.volunteering.createMany({
             data: profileData.volunteering.map((vol: any) => ({
               candidate_id: payload.userId,
@@ -441,12 +441,12 @@ export async function POST(request: NextRequest) {
               media_url: vol.media_url || null,
             }))
           });
-          console.log(`✅ Created ${profileData.volunteering.length} volunteering records`);
+          console.log(` Created ${profileData.volunteering.length} volunteering records`);
         }
 
         // Create accomplishments with proper work experience relationships
         if (profileData.accomplishments?.length > 0) {
-          console.log('🎯 Creating accomplishments...');
+          console.log(' Creating accomplishments...');
           
           const validAccomplishments = profileData.accomplishments.filter((acc: any) => 
             acc.title && acc.title.trim() && acc.description && acc.description.trim()
@@ -459,7 +459,7 @@ export async function POST(request: NextRequest) {
                 ? workExperienceMap.get(acc.temp_work_experience_index) 
                 : null;
               
-              console.log(`📝 Mapping accomplishment "${acc.title}" to work experience ID: ${workExperienceId} (from index ${acc.temp_work_experience_index})`);
+              console.log(` Mapping accomplishment "${acc.title}" to work experience ID: ${workExperienceId} (from index ${acc.temp_work_experience_index})`);
               
               return {
                 candidate_id: payload.userId,
@@ -474,21 +474,21 @@ export async function POST(request: NextRequest) {
               data: accomplishmentsData
             });
             
-            console.log(`✅ Created ${accomplishmentsData.length} accomplishments with work experience relationships`);
+            console.log(` Created ${accomplishmentsData.length} accomplishments with work experience relationships`);
           }
         }
 
         return { candidate, isUpdate };
 
       } catch (dbError) {
-        console.error('❌ Database transaction error:', dbError);
+        console.error(' Database transaction error:', dbError);
         throw dbError;
       }
     }, {
       timeout: 15000, // Increased timeout for the more complex operations
     });
 
-    console.log(`✅ Profile ${result.isUpdate ? 'updated' : 'created'} successfully`);
+    console.log(` Profile ${result.isUpdate ? 'updated' : 'created'} successfully`);
 
     // 5. Process skills OUTSIDE of transaction to avoid timeout
     let skillsCreated = 0;
@@ -497,7 +497,7 @@ export async function POST(request: NextRequest) {
         skillsCreated = await processSkillsInBulk(payload.userId, profileData.candidate_skills);
       }
     } catch (skillsError) {
-      console.error('⚠️ Skills processing failed:', skillsError);
+      console.error(' Skills processing failed:', skillsError);
       // Don't fail the entire request if skills fail
     }
 
@@ -540,7 +540,7 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    console.log('🎉 Profile processing completed:', {
+    console.log(' Profile processing completed:', {
       candidateId: result.candidate.user_id,
       action: result.isUpdate ? 'updated' : 'created',
       skillsCreated,
@@ -550,7 +550,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { status: result.isUpdate ? 200 : 201 });
 
   } catch (error) {
-    console.error('❌ Profile creation/update error:', error);
+    console.error(' Profile creation/update error:', error);
     
     if (error instanceof Error) {
       if (error.message.includes('Unique constraint')) {

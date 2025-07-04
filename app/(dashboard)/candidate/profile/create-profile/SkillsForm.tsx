@@ -533,7 +533,7 @@ export default function SkillsForm({
   useEffect(() => {
     if (candidateSkills.length > 0 && !jobField && !hasAutoDetected) {
       const detectedField = detectJobField(candidateSkills, jobTitle, summary);
-      console.log('🎯 Auto-detected job field:', detectedField);
+      console.log(' Auto-detected job field:', detectedField);
       setValue('job_field', detectedField);
       setHasAutoDetected(true);
     }
@@ -551,7 +551,7 @@ export default function SkillsForm({
 
   // Convert extracted candidate_skills to skill objects with job-field-aware categorization
   const extractedSkills = useMemo(() => {
-    console.log('🔄 Processing candidate skills:', candidateSkills);
+    console.log(' Processing candidate skills:', candidateSkills);
     
     return candidateSkills.map((candidateSkill: CandidateSkill, index: number) => {
       const rawSkillName = candidateSkill.skill_name || `Skill ${index + 1}`;
@@ -569,7 +569,7 @@ export default function SkillsForm({
         description: `Proficiency: ${candidateSkill.proficiency || 50}%`
       };
       
-      console.log('✅ Processed skill:', extractedSkill);
+      console.log(' Processed skill:', extractedSkill);
       return extractedSkill;
     });
   }, [candidateSkills, jobField]);
@@ -590,7 +590,7 @@ export default function SkillsForm({
       }
     });
     
-    console.log('📦 All skills combined:', combined);
+    console.log(' All skills combined:', combined);
     return combined;
   }, [availableSkills, customSkills, extractedSkills]);
   
@@ -600,7 +600,7 @@ export default function SkillsForm({
       const extractedSkillIds = extractedSkills.map(skill => skill.id);
       const currentSelectedIds = selectedSkillIds || [];
       
-      console.log('🔗 Matching skill IDs:', {
+      console.log(' Matching skill IDs:', {
         extractedSkillIds,
         currentSelectedIds
       });
@@ -610,7 +610,7 @@ export default function SkillsForm({
       
       if (missingExtractedIds.length > 0) {
         const newSelectedIds = [...currentSelectedIds, ...missingExtractedIds];
-        console.log('✅ Auto-selecting skills:', newSelectedIds);
+        console.log(' Auto-selecting skills:', newSelectedIds);
         setValue('skills', newSelectedIds);
       }
     }
@@ -618,7 +618,7 @@ export default function SkillsForm({
   
   const selectedSkills = useMemo(() => {
     const selected = allSkills.filter(skill => selectedSkillIds.includes(skill.id));
-    console.log('🎯 Selected skills:', selected);
+    console.log(' Selected skills:', selected);
     return selected;
   }, [allSkills, selectedSkillIds]);
 

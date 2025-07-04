@@ -50,7 +50,7 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
     const existingCvStatus = getValues('cv_processing_status') || 'none';
     
     if (existingCvDocuments.length > 0) {
-      console.log('📄 Loading existing CV data from form state:', existingCvDocuments);
+      console.log(' Loading existing CV data from form state:', existingCvDocuments);
       
       // Convert CVDocument to UploadedCV format
       const existingUploadedCVs: UploadedCV[] = existingCvDocuments.map(doc => ({
@@ -114,7 +114,7 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
     setExtractionStatus('processing');
 
     try {
-      console.log('🚀 Starting CV processing and upload for:', file.name);
+      console.log(' Starting CV processing and upload for:', file.name);
       
       const token = localStorage.getItem('token');
       if (!token) {
@@ -122,7 +122,7 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
       }
 
       // Step 1: Upload CV file to storage first
-      console.log('📤 Step 1: Uploading CV to storage...');
+      console.log(' Step 1: Uploading CV to storage...');
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
       uploadFormData.append('is_primary', String(uploadedCVs.length === 0)); // First file is primary
@@ -142,10 +142,10 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
       }
 
       const uploadResult = await uploadResponse.json();
-      console.log('✅ CV uploaded to storage:', uploadResult);
+      console.log(' CV uploaded to storage:', uploadResult);
 
       // Step 2: Process CV with AI to extract data
-      console.log('🤖 Step 2: Processing CV with AI...');
+      console.log(' Step 2: Processing CV with AI...');
       const processFormData = new FormData();
       processFormData.append('file', file);
 
@@ -183,7 +183,7 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
 
       if (!processResponse.ok) {
         const processError = await processResponse.json();
-        console.warn('⚠️ AI processing failed, but file is uploaded:', processError);
+        console.warn(' AI processing failed, but file is uploaded:', processError);
         
         // Store CV data in form state even if AI processing fails
         const currentCvDocuments = getValues('cv_documents') || [];
@@ -203,13 +203,13 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
       }
 
       const processResult = await processResponse.json();
-      console.log('🤖 AI processing result:', processResult);
+      console.log(' AI processing result:', processResult);
 
       if (processResult.success && processResult.extractedData) {
         const { extractedData, validation } = processResult;
 
         // Step 3: Populate form fields with extracted data
-        console.log('📋 Step 3: Populating form fields...');
+        console.log(' Step 3: Populating form fields...');
         
         // Store extracted data in form state
         setValue('first_name', extractedData.first_name || '');
@@ -271,7 +271,7 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
         
         // Show validation warnings if any
         if (validation && !validation.isValid) {
-          console.warn('⚠️ Validation warnings:', validation.errors);
+          console.warn(' Validation warnings:', validation.errors);
           toast.warning(`Data extracted with ${validation.errors.length} warnings. Please review.`);
         } else {
           toast.success('CV uploaded and processed successfully! Data populated in form fields.');
@@ -310,7 +310,7 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
       if (fileInput) fileInput.value = '';
 
     } catch (error) {
-      console.error('❌ CV processing/upload error:', error);
+      console.error(' CV processing/upload error:', error);
       setExtractionStatus('error');
       
       // Update form state to reflect error
@@ -364,7 +364,7 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
       
       toast.success('CV removed successfully');
     } catch (error) {
-      console.error('❌ Failed to remove CV:', error);
+      console.error(' Failed to remove CV:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to remove CV');
     }
   };

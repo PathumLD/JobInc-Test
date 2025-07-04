@@ -23,11 +23,11 @@ export default function VolunteeringForm({
   
   const volunteering = watch('volunteering') || [];
 
-  // 🚨 CRITICAL FIX: Only initialize if truly empty and no meaningful data
+  //  CRITICAL FIX: Only initialize if truly empty and no meaningful data
   useEffect(() => {
-    console.log('🔍 VolunteeringForm useEffect triggered');
-    console.log('📊 Current volunteering length:', volunteering.length);
-    console.log('📋 Current volunteering data:', volunteering);
+    console.log(' VolunteeringForm useEffect triggered');
+    console.log(' Current volunteering length:', volunteering.length);
+    console.log(' Current volunteering data:', volunteering);
     
     // Check if we have any meaningful data (extracted or manually entered)
     const hasMeaningfulData = volunteering.some(v => 
@@ -36,7 +36,7 @@ export default function VolunteeringForm({
       (v.description && v.description.trim() !== '')
     );
     
-    console.log('❓ Has meaningful data?', hasMeaningfulData);
+    console.log(' Has meaningful data?', hasMeaningfulData);
     
     // Only initialize with empty entry if:
     // 1. No volunteering entries exist, OR
@@ -44,7 +44,7 @@ export default function VolunteeringForm({
     if (volunteering.length === 0 || !hasMeaningfulData) {
       // But first check if this is just extracted empty data
       if (volunteering.length === 0) {
-        console.log('✅ Initializing with default empty entry');
+        console.log(' Initializing with default empty entry');
         setValue('volunteering', [
           {
             role: '',
@@ -59,12 +59,12 @@ export default function VolunteeringForm({
         ]);
       }
     } else {
-      console.log('✅ Keeping existing meaningful data');
+      console.log(' Keeping existing meaningful data');
     }
   }, []); // Remove volunteering.length dependency to prevent re-initialization
 
   const addNewVolunteering = () => {
-    console.log('➕ Adding new volunteering entry');
+    console.log(' Adding new volunteering entry');
     setValue('volunteering', [
       ...volunteering,
       {
@@ -81,7 +81,7 @@ export default function VolunteeringForm({
   };
 
   const removeVolunteering = (index: number) => {
-    console.log('🗑️ Removing volunteering entry at index:', index);
+    console.log(' Removing volunteering entry at index:', index);
     // Prevent removing if it's the last/only entry
     if (volunteering.length <= 1) return;
     
@@ -95,7 +95,7 @@ export default function VolunteeringForm({
     field: keyof typeof volunteering[0],
     value: any
   ) => {
-    console.log(`🔄 Updating volunteering[${index}].${field} =`, value);
+    console.log(` Updating volunteering[${index}].${field} =`, value);
     const updatedVolunteering = [...volunteering];
     updatedVolunteering[index][field] = value;
     
@@ -105,7 +105,7 @@ export default function VolunteeringForm({
     }
     
     setValue('volunteering', updatedVolunteering);
-    console.log('📝 Updated volunteering:', updatedVolunteering);
+    console.log(' Updated volunteering:', updatedVolunteering);
   };
 
   return (

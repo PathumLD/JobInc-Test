@@ -225,10 +225,10 @@ export const extractJSONFromText = (text: string): any => {
     const jsonString = cleanText.slice(jsonStart, jsonEnd);
     const parsed = JSON.parse(jsonString);
     
-    console.log('✅ JSON parsed successfully');
+    console.log(' JSON parsed successfully');
     return parsed;
   } catch (error) {
-    console.error('❌ Error parsing JSON:', error);
+    console.error(' Error parsing JSON:', error);
     console.error('Raw text:', text.substring(0, 1000));
     throw new Error('Failed to parse extracted data as JSON');
   }
@@ -250,7 +250,7 @@ export const processExtractedData = async (file: File): Promise<ExtractedData> =
   });
   
   try {
-    console.log('📤 Processing file:', file.name, file.type);
+    console.log(' Processing file:', file.name, file.type);
     
     const arrayBuffer = await file.arrayBuffer();
     const base64Data = Buffer.from(arrayBuffer).toString('base64');
@@ -268,13 +268,13 @@ export const processExtractedData = async (file: File): Promise<ExtractedData> =
     const response = await result.response;
     const responseText = response.text();
     
-    console.log('🤖 AI Response received, length:', responseText.length);
-    console.log('📄 Raw AI response preview:', responseText.substring(0, 500) + '...');
+    console.log(' AI Response received, length:', responseText.length);
+    console.log(' Raw AI response preview:', responseText.substring(0, 500) + '...');
     
     const extractedData = extractJSONFromText(responseText);
     
     // Log extraction summary
-    console.log('🔍 Extracted data summary:', {
+    console.log(' Extracted data summary:', {
       basic_info: !!extractedData.basic_info,
       work_experiences: extractedData.work_experiences?.length || 0,
       educations: extractedData.educations?.length || 0,
@@ -288,7 +288,7 @@ export const processExtractedData = async (file: File): Promise<ExtractedData> =
     
     return extractedData;
   } catch (error) {
-    console.error('❌ Error in processExtractedData:', error);
+    console.error(' Error in processExtractedData:', error);
     if (error instanceof Error) {
       throw new Error(`CV processing failed: ${error.message}`);
     }

@@ -37,11 +37,11 @@ export default function CertificateForm({
   useEffect(() => {
     if (!isInitialized) {
       const currentCertificates = getValues('certificates');
-      console.log('🔍 CertificateForm - Current certificates on mount:', currentCertificates);
+      console.log(' CertificateForm - Current certificates on mount:', currentCertificates);
       
       // Only initialize if truly empty (no extracted data)
       if (!currentCertificates || currentCertificates.length === 0) {
-        console.log('📝 Initializing empty certificate form');
+        console.log(' Initializing empty certificate form');
         setValue('certificates', [
           {
             name: '',
@@ -55,7 +55,7 @@ export default function CertificateForm({
           },
         ]);
       } else {
-        console.log('✅ Using extracted certificate data:', currentCertificates.length, 'certificates');
+        console.log(' Using extracted certificate data:', currentCertificates.length, 'certificates');
       }
       setIsInitialized(true);
     }
@@ -63,7 +63,7 @@ export default function CertificateForm({
 
   // Debug: Log when certificates change
   useEffect(() => {
-    console.log('📋 Certificates updated in form:', certificates.length, certificates);
+    console.log(' Certificates updated in form:', certificates.length, certificates);
   }, [certificates]);
 
   const addNewCertificate = () => {

@@ -43,7 +43,6 @@ export default function CreateProfilePage() {
       // Basic form defaults
       first_name: '',
       last_name: '',
-      email: '',
       phone: '',
       location: '',
       title: '',
@@ -96,7 +95,7 @@ export default function CreateProfilePage() {
   const cvDocuments = methods.watch('cv_documents') || [];
   const cvProcessingStatus = methods.watch('cv_processing_status') || 'none';
   const cvExtractionCompleted = methods.watch('cv_extraction_completed') || false;
-  const uploadedCvIds = methods.watch('uploaded_cv_ids') || [];
+  //const uploadedCvIds = methods.watch('uploaded_cv_ids') || [];
 
   // Load existing CV data from localStorage/sessionStorage (optional enhancement)
   const loadPersistedFormData = () => {
@@ -104,14 +103,14 @@ export default function CreateProfilePage() {
       const persistedData = sessionStorage.getItem('profile_form_data');
       if (persistedData) {
         const parsedData = JSON.parse(persistedData);
-        console.log('📋 Loading persisted form data:', parsedData);
+        console.log(' Loading persisted form data:', parsedData);
         
         // Reset form with persisted data
         methods.reset(parsedData);
         return true;
       }
     } catch (error) {
-      console.warn('⚠️ Failed to load persisted form data:', error);
+      console.warn(' Failed to load persisted form data:', error);
     }
     return false;
   };
@@ -121,9 +120,9 @@ export default function CreateProfilePage() {
     try {
       const formData = methods.getValues();
       sessionStorage.setItem('profile_form_data', JSON.stringify(formData));
-      console.log('💾 Form data persisted to sessionStorage');
+      console.log(' Form data persisted to sessionStorage');
     } catch (error) {
-      console.warn('⚠️ Failed to persist form data:', error);
+      console.warn(' Failed to persist form data:', error);
     }
   };
 
@@ -136,7 +135,7 @@ export default function CreateProfilePage() {
         return;
       }
 
-      console.log('🔍 Checking if profile already exists...');
+      console.log(' Checking if profile already exists...');
       
       const response = await fetch('/api/candidate/profile/check-profile', {
         method: 'GET',
@@ -147,10 +146,10 @@ export default function CreateProfilePage() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('📋 Profile check result:', data);
+        console.log(' Profile check result:', data);
         
         if (data.exists) {
-          console.log('✅ Profile exists, redirecting to display profile...');
+          console.log(' Profile exists, redirecting to display profile...');
           setProfileExists(true);
           
           // Clear any persisted form data
@@ -165,7 +164,7 @@ export default function CreateProfilePage() {
             router.push('/candidate/profile/display-profile');
           }, 2000);
         } else {
-          console.log('❌ No profile found, user can create one');
+          console.log(' No profile found, user can create one');
           setProfileExists(false);
           
           // Try to load any persisted form data
@@ -175,16 +174,16 @@ export default function CreateProfilePage() {
           }
         }
       } else if (response.status === 401) {
-        console.log('🔐 Authentication required');
+        console.log(' Authentication required');
         localStorage.removeItem('token');
         sessionStorage.removeItem('profile_form_data');
         router.push('/auth/login');
       } else {
-        console.warn('⚠️ Profile check failed, allowing creation attempt');
+        console.warn(' Profile check failed, allowing creation attempt');
         setProfileExists(false);
       }
     } catch (error) {
-      console.error('❌ Error checking profile:', error);
+      console.error(' Error checking profile:', error);
       setProfileExists(false);
     } finally {
       setIsCheckingProfile(false);
@@ -209,6 +208,7 @@ export default function CreateProfilePage() {
       }
 
       setUserRole(user.role);
+      console.log(' User authenticated:', userRole);
       setIsAuthenticated(true);
       
       // Check if profile already exists
@@ -221,7 +221,7 @@ export default function CreateProfilePage() {
   // Initialize form state
   useEffect(() => {
     if (isAuthenticated && !isCheckingProfile && !profileExists && !formInitialized) {
-      console.log('🚀 Initializing form state...');
+      console.log(' Initializing form state...');
       setFormInitialized(true);
     }
   }, [isAuthenticated, isCheckingProfile, profileExists, formInitialized]);
@@ -235,7 +235,7 @@ export default function CreateProfilePage() {
 
   // Handle section navigation with data persistence
   const handleSectionChange = (section: string) => {
-    console.log(`🔄 Navigating to section: ${section}`);
+    console.log(` Navigating to section: ${section}`);
     persistFormData();
     setActiveSection(section);
     
@@ -251,7 +251,7 @@ export default function CreateProfilePage() {
 
   // Enhanced CV data extraction handler
   const handleCVDataExtracted = (extractedData: any) => {
-    console.log('🤖 CV data extracted and applied to form:', extractedData);
+    console.log(' CV data extracted and applied to form:', extractedData);
     
     // Data is already set in CVExtractor, but we can add additional logic here
     toast.success('CV data extracted successfully! Navigate through sections to review and edit.');
@@ -289,9 +289,9 @@ export default function CreateProfilePage() {
         return;
       }
 
-      console.log('🚀 Creating profile with form data...');
-      console.log('📄 CV Documents to be linked:', formData.cv_documents);
-      console.log('🔄 CV Processing Status:', formData.cv_processing_status);
+      console.log(' Creating profile with form data...');
+      console.log(' CV Documents to be linked:', formData.cv_documents);
+      console.log(' CV Processing Status:', formData.cv_processing_status);
 
       // Show loading toast
       const loadingToast = toast.loading('Creating your profile...', {
@@ -311,7 +311,7 @@ export default function CreateProfilePage() {
         }
       };
 
-      console.log('📤 Sending profile creation request...');
+      console.log(' Sending profile creation request...');
       
       const response = await fetch('/api/candidate/profile/create-profile', {
         method: 'POST',
@@ -325,7 +325,7 @@ export default function CreateProfilePage() {
       // Dismiss loading toast
       toast.dismiss(loadingToast);
 
-      console.log('📨 Response received:', response.status, response.statusText);
+      console.log(' Response received:', response.status, response.statusText);
 
       const responseData = await response.json();
 
@@ -358,7 +358,7 @@ export default function CreateProfilePage() {
         throw new Error(responseData.error || 'Failed to create profile');
       }
 
-      console.log('✅ Profile creation response:', responseData);
+      console.log(' Profile creation response:', responseData);
 
       // Check uploaded CVs and creation details
       const { uploadedCVs, skillsCreated } = responseData.data;
@@ -367,7 +367,7 @@ export default function CreateProfilePage() {
       sessionStorage.removeItem('profile_form_data');
       
       // Enhanced success message
-      let successMessage = '🎉 Profile created successfully!';
+      let successMessage = ' Profile created successfully!';
       
       if (uploadedCVs?.length > 0) {
         successMessage += ` ${uploadedCVs.length} CV file(s) are linked to your profile.`;
@@ -385,7 +385,7 @@ export default function CreateProfilePage() {
         duration: 5000,
       });
 
-      console.log('📄 Profile creation summary:', {
+      console.log(' Profile creation summary:', {
         linkedCVs: uploadedCVs?.length || 0,
         skillsCreated: skillsCreated || 0,
         cvExtracted: cvExtractionCompleted
@@ -397,20 +397,20 @@ export default function CreateProfilePage() {
       }, 2000);
       
     } catch (error) {
-      console.error('❌ Profile creation error:', error);
+      console.error(' Profile creation error:', error);
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
-          toast.error('🌐 Network error. Please check your connection and try again.', {
+          toast.error(' Network error. Please check your connection and try again.', {
             duration: 6000,
           });
         } else {
-          toast.error(`❌ ${error.message || 'Failed to create profile. Please try again.'}`, {
+          toast.error(` ${error.message || 'Failed to create profile. Please try again.'}`, {
             duration: 6000,
           });
         }
       } else {
-        toast.error('❌ Failed to create profile. Please try again.', {
+        toast.error(' Failed to create profile. Please try again.', {
           duration: 6000,
         });
       }

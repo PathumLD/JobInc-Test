@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+//import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+//import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Loader2, User, Globe, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import type { UnifiedProfileData, CVDocument } from '@/lib/data-transformer';
@@ -164,9 +164,9 @@ export default function BasicInfoForm({
 
       // Log CV documents for debugging
       if (validatedData.cv_documents && validatedData.cv_documents.length > 0) {
-        console.log('📄 CV documents to be preserved:', validatedData.cv_documents);
-        console.log('🔄 CV processing status:', validatedData.cv_processing_status);
-        console.log('✅ CV extraction completed:', validatedData.cv_extraction_completed);
+        console.log(' CV documents to be preserved:', validatedData.cv_documents);
+        console.log(' CV processing status:', validatedData.cv_processing_status);
+        console.log(' CV extraction completed:', validatedData.cv_extraction_completed);
       }
 
       // Validate required fields
@@ -198,7 +198,7 @@ export default function BasicInfoForm({
       // Move to next step
       onNext();
     } catch (error) {
-      console.error('❌ Form validation error:', error);
+      console.error(' Form validation error:', error);
       toast.error('Failed to save basic information');
     } finally {
       setIsSubmitting(false);

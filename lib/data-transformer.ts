@@ -427,7 +427,7 @@ export class DataTransformer {
       normalized.skills = null;
     }
     
-    console.log('✅ Enhanced skills normalization complete:', {
+    console.log(' Enhanced skills normalization complete:', {
       totalSkills: normalized.candidate_skills?.length || 0,
       bySource: normalized.candidate_skills ? this.groupSkillsBySource(normalized.candidate_skills) : {},
       workExperiences: normalized.work_experience?.length || 0,
@@ -591,7 +591,7 @@ export class DataTransformer {
     }
     
     // Log validation results
-    console.log('🔍 Validation results:', {
+    console.log(' Validation results:', {
       isValid: errors.length === 0,
       errorCount: errors.length,
       errors: errors

@@ -136,10 +136,10 @@ export async function POST(request: NextRequest) {
 
     // 5. Upload file to Supabase storage
     const fileName = generateUniqueFileName(file.name, payload.userId);
-    console.log('📤 Uploading file to Supabase:', fileName);
+    console.log(' Uploading file to Supabase:', fileName);
     
     const resumeUrl = await uploadToSupabase(file, fileName);
-    console.log('✅ File uploaded successfully:', resumeUrl);
+    console.log(' File uploaded successfully:', resumeUrl);
 
     // 6. Handle primary resume logic and save to database
     const result = await prisma.$transaction(async (tx) => {
@@ -296,7 +296,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Get resumes error:', error);
+    console.error(' Get resumes error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -427,7 +427,7 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Delete resume error:', error);
+    console.error(' Delete resume error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
