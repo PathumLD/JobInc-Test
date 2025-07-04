@@ -38,7 +38,7 @@ export default function EmployeeSidebar({
 
       <button
         className="mt-6 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-        onClick={() => router.push("/dashboard/candidate/profile/display-profile")}
+        onClick={() => router.push("/candidate/profile/display-profile")}
       >
         Go to Candidate Profile
       </button>
