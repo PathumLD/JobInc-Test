@@ -1,5 +1,5 @@
 // app/api/candidate/profile/create-profile/route.ts
-// Updated version with UPDATE logic for existing candidates
+// Fixed version with proper accomplishment-work experience relationship
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Parse request body - No CV files needed since they're uploaded separately
+    // 2. Parse request body
     const { profileData } = await request.json();
 
     if (!profileData) {
@@ -219,7 +219,9 @@ export async function POST(request: NextRequest) {
 
     console.log('📋 Profile data received:', {
       name: `${profileData.first_name} ${profileData.last_name}`,
-      skills: profileData.candidate_skills?.length || 0
+      skills: profileData.candidate_skills?.length || 0,
+      accomplishments: profileData.accomplishments?.length || 0,
+      workExperiences: profileData.work_experience?.length || 0
     });
 
     // 3. Get primary resume URL from existing uploaded resumes
@@ -307,34 +309,43 @@ export async function POST(request: NextRequest) {
             tx.award.deleteMany({ where: { candidate_id: payload.userId } }),
             tx.volunteering.deleteMany({ where: { candidate_id: payload.userId } }),
             tx.accomplishment.deleteMany({ where: { candidate_id: payload.userId } }),
-            // Note: candidateSkill is cleared in processSkillsInBulk function
           ]);
           console.log('✅ Existing related data cleared');
         }
 
-        // Create work experiences
+        // Create work experiences and store them with their indexes
+        const workExperienceMap = new Map(); // Map frontend index to database ID
+        
         if (profileData.work_experience?.length > 0) {
           console.log('💼 Creating work experiences...');
-          await tx.workExperience.createMany({
-            data: profileData.work_experience.map((exp: any) => ({
-              candidate_id: payload.userId,
-              title: exp.title,
-              company: exp.company,
-              employment_type: exp.employment_type || 'full_time',
-              is_current: exp.is_current || false,
-              start_date: new Date(exp.start_date),
-              end_date: exp.end_date ? new Date(exp.end_date) : null,
-              location: exp.location || null,
-              description: exp.description || null,
-              job_source: exp.job_source || '',
-              skill_ids: exp.skill_ids || [],
-              media_url: exp.media_url || '',
-            }))
-          });
+          
+          for (let i = 0; i < profileData.work_experience.length; i++) {
+            const exp = profileData.work_experience[i];
+            const createdExp = await tx.workExperience.create({
+              data: {
+                candidate_id: payload.userId,
+                title: exp.title,
+                company: exp.company,
+                employment_type: exp.employment_type || 'full_time',
+                is_current: exp.is_current || false,
+                start_date: new Date(exp.start_date),
+                end_date: exp.end_date ? new Date(exp.end_date) : null,
+                location: exp.location || null,
+                description: exp.description || null,
+                job_source: exp.job_source || '',
+                skill_ids: exp.skill_ids || [],
+                media_url: exp.media_url || '',
+              }
+            });
+            
+            // Map the frontend index to the database ID
+            workExperienceMap.set(i, createdExp.id);
+          }
+          
           console.log(`✅ Created ${profileData.work_experience.length} work experiences`);
         }
 
-        // Create education
+        // Create other sections (education, certificates, etc.)
         if (profileData.education?.length > 0) {
           console.log('🎓 Creating education records...');
           await tx.education.createMany({
@@ -354,7 +365,6 @@ export async function POST(request: NextRequest) {
           console.log(`✅ Created ${profileData.education.length} education records`);
         }
 
-        // Create certificates
         if (profileData.certificates?.length > 0) {
           console.log('📜 Creating certificates...');
           await tx.certificate.createMany({
@@ -373,7 +383,6 @@ export async function POST(request: NextRequest) {
           console.log(`✅ Created ${profileData.certificates.length} certificates`);
         }
 
-        // Create projects
         if (profileData.projects?.length > 0) {
           console.log('🚀 Creating projects...');
           await tx.project.createMany({
@@ -400,7 +409,6 @@ export async function POST(request: NextRequest) {
           console.log(`✅ Created ${profileData.projects.length} projects`);
         }
 
-        // Create awards
         if (profileData.awards?.length > 0) {
           console.log('🏆 Creating awards...');
           await tx.award.createMany({
@@ -418,7 +426,6 @@ export async function POST(request: NextRequest) {
           console.log(`✅ Created ${profileData.awards.length} awards`);
         }
 
-        // Create volunteering
         if (profileData.volunteering?.length > 0) {
           console.log('🤝 Creating volunteering records...');
           await tx.volunteering.createMany({
@@ -437,7 +444,7 @@ export async function POST(request: NextRequest) {
           console.log(`✅ Created ${profileData.volunteering.length} volunteering records`);
         }
 
-        // Create accomplishments (only if they have valid data)
+        // Create accomplishments with proper work experience relationships
         if (profileData.accomplishments?.length > 0) {
           console.log('🎯 Creating accomplishments...');
           
@@ -446,16 +453,28 @@ export async function POST(request: NextRequest) {
           );
 
           if (validAccomplishments.length > 0) {
-            await tx.accomplishment.createMany({
-              data: validAccomplishments.map((acc: any) => ({
+            const accomplishmentsData = validAccomplishments.map((acc: any) => {
+              // Get the actual work experience ID from the map
+              const workExperienceId = acc.temp_work_experience_index !== undefined 
+                ? workExperienceMap.get(acc.temp_work_experience_index) 
+                : null;
+              
+              console.log(`📝 Mapping accomplishment "${acc.title}" to work experience ID: ${workExperienceId} (from index ${acc.temp_work_experience_index})`);
+              
+              return {
                 candidate_id: payload.userId,
                 title: acc.title.trim().substring(0, 300),
                 description: acc.description.trim(),
-                work_experience_id: acc.work_experience_id || null,
+                work_experience_id: workExperienceId,
                 resume_id: null,
-              }))
+              };
             });
-            console.log(`✅ Created ${validAccomplishments.length} accomplishments`);
+
+            await tx.accomplishment.createMany({
+              data: accomplishmentsData
+            });
+            
+            console.log(`✅ Created ${accomplishmentsData.length} accomplishments with work experience relationships`);
           }
         }
 
@@ -466,7 +485,7 @@ export async function POST(request: NextRequest) {
         throw dbError;
       }
     }, {
-      timeout: 10000,
+      timeout: 15000, // Increased timeout for the more complex operations
     });
 
     console.log(`✅ Profile ${result.isUpdate ? 'updated' : 'created'} successfully`);

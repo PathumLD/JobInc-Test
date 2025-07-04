@@ -11,11 +11,13 @@ import { BasicInfoFormValues } from './BasicInfoForm';
 import { useEffect, useState } from 'react';
 import { WorkExperience } from '@prisma/client';
 
-// You'll need these types based on your schemas
+// Updated interfaces for proper linking
 interface AccomplishmentFormData {
   title: string;
   description: string;
-  work_experience_index?: number; // To link to work experience
+  temp_work_experience_index?: number; // For frontend relationship tracking
+  work_experience_id?: string | null; // Will be set after DB save
+  resume_id?: string | null; // For linking to resume if needed
 }
 
 interface SkillFormData {
@@ -83,10 +85,17 @@ export default function WorkExperiencesForm({
     updatedExperiences.splice(index, 1);
     setValue('work_experience', updatedExperiences);
     
-    // Remove associated accomplishments
-    const updatedAccomplishments = accomplishments.filter(
-      (acc: AccomplishmentFormData) => acc.work_experience_index !== index
-    );
+    // Remove associated accomplishments and update indexes
+    const updatedAccomplishments = accomplishments
+      .filter((acc: AccomplishmentFormData) => acc.temp_work_experience_index !== index)
+      .map((acc: AccomplishmentFormData) => ({
+        ...acc,
+        // Update indexes for accomplishments of experiences that come after the removed one
+        temp_work_experience_index: 
+          acc.temp_work_experience_index !== undefined && acc.temp_work_experience_index > index
+            ? acc.temp_work_experience_index - 1
+            : acc.temp_work_experience_index
+      }));
     setValue('accomplishments', updatedAccomplishments);
     
     // Remove associated media file
@@ -105,14 +114,17 @@ export default function WorkExperiencesForm({
     setValue('work_experience', updatedExperiences);
   };
 
-  // Accomplishments functions
+  // Updated accomplishments functions
   const addNewAccomplishment = (experienceIndex: number) => {
-    const newAccomplishment: AccomplishmentFormData = {
-      title: '',
-      description: '',
-      work_experience_index: experienceIndex,
-    };
-    setValue('accomplishments', [...accomplishments, newAccomplishment]);
+  const newAccomplishment: AccomplishmentFormData = {
+    title: '',
+    description: '',
+    temp_work_experience_index: experienceIndex, // This will be mapped to work_experience_id in backend
+    work_experience_id: null, // Will be set by backend
+    resume_id: null,
+  };
+  
+  setValue('accomplishments', [...accomplishments, newAccomplishment]);
   };
 
   const removeAccomplishment = (accomplishmentIndex: number) => {
@@ -186,7 +198,7 @@ export default function WorkExperiencesForm({
   const getExperienceAccomplishments = (experienceIndex: number) => {
     return accomplishments
       .map((acc: AccomplishmentFormData, index: number) => ({ ...acc, originalIndex: index }))
-      .filter(acc => acc.work_experience_index === experienceIndex);
+      .filter(acc => acc.temp_work_experience_index === experienceIndex);
   };
 
   // Get skills for a specific experience
@@ -426,7 +438,9 @@ export default function WorkExperiencesForm({
               {/* Accomplishments Section for this Experience */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-medium">Accomplishments</h4>
+                  <h4 className="font-medium">
+                    Accomplishments for "{workExperiences[index]?.title || 'This Position'}"
+                  </h4>
                   <Button
                     type="button"
                     variant="outline"
@@ -437,6 +451,12 @@ export default function WorkExperiencesForm({
                     Add Accomplishment
                   </Button>
                 </div>
+                
+                {getExperienceAccomplishments(index).length === 0 && (
+                  <p className="text-sm text-gray-500 italic">
+                    No accomplishments added yet. Click `Add Accomplishment` to highlight your achievements in this role.
+                  </p>
+                )}
 
                 {getExperienceAccomplishments(index).length > 0 && (
                   <div className="space-y-4">
