@@ -128,8 +128,15 @@ export default function ExperienceCard({
                     key={accomplishment.id} 
                     className="text-sm text-gray-700 flex items-start"
                   >
-                    <span className="text-gray-400 mr-2 mt-1">•</span>
-                    <span>{accomplishment.title}</span>
+                    <div>
+                      <span className="text-gray-400 mr-2 mt-1">•</span>
+                      <span>{accomplishment.title}</span>
+                    </div>
+                    <div className='flex-1 ml-2 flex items-start'>
+                      {accomplishment.description && (
+                      <span className="ml-2 text-gray-600">{accomplishment.description}</span>
+                    )}
+                    </div>
                   </li>
                 ))}
               </ul>

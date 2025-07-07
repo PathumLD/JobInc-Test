@@ -6,8 +6,8 @@ export interface UnifiedProfileData {
   first_name: string;
   last_name: string;
   additional_name?: string;
-  phone?: string;
-  phone_type?: 'mobile' | 'home' | 'work' | 'other';
+  phone1?: string;
+  phone2?: string;
   location?: string;
   linkedin_url?: string;
   github_url?: string;
@@ -168,8 +168,8 @@ export class DataTransformer {
       first_name: extracted.basic_info?.first_name || '',
       last_name: extracted.basic_info?.last_name || '',
       additional_name: extracted.basic_info?.additional_name || undefined,
-      phone: extracted.basic_info?.phone || undefined,
-      phone_type: extracted.basic_info?.phone_type || undefined,
+      phone1: extracted.basic_info?.phone1 || undefined,
+      phone2: extracted.basic_info?.phone2 || undefined,
       location: extracted.basic_info?.location || undefined,
       linkedin_url: extracted.basic_info?.linkedin_url || undefined,
       github_url: extracted.basic_info?.github_url || undefined,

@@ -47,7 +47,8 @@ export default function BasicInfoForm({
   const firstName = watch('first_name');
   const lastName = watch('last_name');
   const email = watch('email');
-  const phone = watch('phone');
+  const phone1 = watch('phone1');
+  const phone2 = watch('phone2');
   const location = watch('location');
   const title = watch('title');
   const currentPosition = watch('current_position');
@@ -267,14 +268,27 @@ export default function BasicInfoForm({
           </div>
 
           <div>
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phone1">Phone Number 1</Label>
             <Input
-              id="phone"
-              {...register('phone')}
+              id="phone1"
+              {...register('phone1')}
               placeholder="Enter your phone number"
-              className={phone ? 'bg-blue-50' : ''}
+              className={phone1 ? 'bg-blue-50' : ''}
             />
-            {phone && cvExtractionCompleted && (
+            {phone1 && cvExtractionCompleted && (
+              <p className="text-xs text-blue-600 mt-1">✓ Auto-filled from CV</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="phone2">Phone Number 1</Label>
+            <Input
+              id="phone2"
+              {...register('phone2')}
+              placeholder="Enter your phone number"
+              className={phone2 ? 'bg-blue-50' : ''}
+            />
+            {phone2 && cvExtractionCompleted && (
               <p className="text-xs text-blue-600 mt-1">✓ Auto-filled from CV</p>
             )}
           </div>

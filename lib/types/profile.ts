@@ -4,7 +4,8 @@ export interface UnifiedProfileData {
   first_name: string;
   last_name: string;
   email: string;
-  phone?: string;
+  phone1?: string;
+  phone2?: string;
   location?: string;
   linkedin_url?: string;
   github_url?: string;

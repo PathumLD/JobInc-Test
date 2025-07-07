@@ -308,8 +308,8 @@ model Candidate {
   city                          String?            @db.VarChar(100)
   location                      String?            @db.VarChar(200)
   address                       String?
-  phone                         String?            @db.VarChar(20)
-  phone_type                    PhoneType?
+  phone1                        String?            @db.VarChar(20)
+  phone2                        String?
   personal_website              String?
   nic                           String?            @db.VarChar(50)
   passport                      String?            @db.VarChar(50)
@@ -334,7 +334,7 @@ model Candidate {
   veteran_status                String?            @db.VarChar(100)
   pronouns                      String?            @db.VarChar(50)
   salary_visibility             SalaryVisibility?  @default(confidential)
-  notice_period                 Int?               @default(30) // days
+  notice_period                 Int?               @default(30)
   work_authorization            WorkAuthorization? 
   visa_assistance_needed        Boolean?           @default(false)
   work_availability             WorkAvailability?  @default(full_time)
@@ -416,9 +416,10 @@ model Accomplishment {
 model Education {
   id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   candidate_id         String    @db.Uuid
-  degree_diploma       String?   @db.VarChar(200)
-  university_school    String?   @db.VarChar(300)
-  field_of_study       String?   @db.VarChar(200)
+  degree_diploma       String?   @db.VarChar(100)
+  university_school    String?   @db.VarChar(100)
+  field_of_study       String?   @db.VarChar(100)
+  description          String?   
   start_date           DateTime? @db.Date
   end_date             DateTime? @db.Date
   grade                String?   @db.VarChar(50)

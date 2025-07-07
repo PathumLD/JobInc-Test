@@ -165,18 +165,18 @@ export function formatAvailabilityStatus(status: string | null): string {
 /**
  * Format phone type for display
  */
-export function formatPhoneType(type: string | null): string {
-  if (!type) return '';
+// export function formatPhoneType(type: string | null): string {
+//   if (!type) return '';
   
-  const typeMap: { [key: string]: string } = {
-    'mobile': 'Mobile',
-    'home': 'Home',
-    'work': 'Work',
-    'other': 'Other'
-  };
+//   const typeMap: { [key: string]: string } = {
+//     'mobile': 'Mobile',
+//     'home': 'Home',
+//     'work': 'Work',
+//     'other': 'Other'
+//   };
   
-  return typeMap[type] || type;
-}
+//   return typeMap[type] || type;
+// }
 
 /**
  * Format language proficiency for display

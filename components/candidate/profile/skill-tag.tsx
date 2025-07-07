@@ -29,11 +29,11 @@ export default function SkillTag({
         className="text-sm font-medium px-3 py-1 hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-default"
       >
         {skill.skill_name}
-        {showProficiency && skill.proficiency && (
+        {/* {showProficiency && skill.proficiency && (
           <span className="ml-2 text-xs opacity-75">
             {proficiencyPercentage}
           </span>
-        )}
+        )} */}
       </Badge>
       
       {/* Tooltip on Hover */}
@@ -41,9 +41,9 @@ export default function SkillTag({
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
           <div className="text-center">
             <div className="font-medium">{skill.skill_name}</div>
-            <div className="text-gray-300">
+            {/* <div className="text-gray-300">
               {proficiencyLevel} • {proficiencyPercentage}
-            </div>
+            </div> */}
             {skill.years_of_experience && (
               <div className="text-gray-300">
                 {skill.years_of_experience} years experience

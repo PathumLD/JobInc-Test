@@ -12,8 +12,8 @@ export interface ExtractedData {
     bio?: string;
     about?: string;
     location?: string;
-    phone?: string;
-    phone_type?: 'mobile' | 'home' | 'work' | 'other';
+    phone1?: string;
+    phone2?: string;
     years_of_experience?: number;
     expected_salary_min?: number;
     expected_salary_max?: number;
@@ -113,8 +113,8 @@ REQUIRED JSON STRUCTURE:
     "bio": "string|null",
     "about": "string|null",
     "location": "string|null",
-    "phone": "string|null",
-    "phone_type": "mobile|home|work|other|null",
+    "phone1": "string|null",
+    "phone2": "string|null",
     "years_of_experience": "number|null",
     "portfolio_url": "string|null",
     "personal_website": "string|null",

@@ -110,7 +110,8 @@ interface ExtractedData {
     bio: string | null;
     about: string | null;
     location: string | null;
-    phone: string | null;
+    phone1: string | null;
+    phone2: string | null;
     personal_website: string | null;
     github_url: string | null;
     linkedin_url: string | null;
@@ -145,7 +146,8 @@ Extract candidate profile data from this CV and return STRICT JSON matching the 
     "bio": "string|null",
     "about": "string|null",
     "location": "string|null",
-    "phone": "string|null",
+    "phone1": "string|null",
+    "phone2": "string|null",
     "personal_website": "string|null",
     "github_url": "string|null",
     "linkedin_url": "string|null",
@@ -446,7 +448,8 @@ export async function POST(request: NextRequest) {
         // Basic info mapping
         first_name: rawExtractedData.basic_info.first_name || '',
         last_name: rawExtractedData.basic_info.last_name || '',
-        phone: rawExtractedData.basic_info.phone || '',
+        phone1: rawExtractedData.basic_info.phone1 || '',
+        phone2: rawExtractedData.basic_info.phone2 || '',
         location: rawExtractedData.basic_info.location || '',
         linkedin_url: rawExtractedData.basic_info.linkedin_url || '',
         github_url: rawExtractedData.basic_info.github_url || '',

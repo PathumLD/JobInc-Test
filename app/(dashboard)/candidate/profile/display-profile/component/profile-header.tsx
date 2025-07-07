@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { 
   MapPin, 
-  Phone, 
+  Phone,
   Mail, 
   Globe, 
   Github, 
@@ -148,15 +148,28 @@ export default function ProfileHeader({ candidate, userEmail }: ProfileHeaderPro
               </div>
             )}
 
-            {/* Phone */}
-            {candidate.phone && (
+            {/* Phone1 */}
+            {candidate.phone1 && (
               <div className="flex items-center text-sm text-gray-600">
                 <Phone className="h-4 w-4 mr-2 text-gray-400" />
                 <a 
-                  href={`tel:${candidate.phone}`}
+                  href={`tel:${candidate.phone1}`}
                   className="hover:text-blue-600"
                 >
-                  {candidate.phone}
+                  {candidate.phone1}
+                </a>
+              </div>
+            )}
+
+            {/* Phone2 */}
+            {candidate.phone2 && (
+              <div className="flex items-center text-sm text-gray-600">
+                <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                <a 
+                  href={`tel:${candidate.phone2}`}
+                  className="hover:text-blue-600"
+                >
+                  {candidate.phone2}
                 </a>
               </div>
             )}

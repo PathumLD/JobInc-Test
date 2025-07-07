@@ -16,8 +16,8 @@ interface CompleteProfileData {
     bio: string | null;
     about: string | null;
     location: string | null;
-    phone: string | null;
-    phone_type: string | null;
+    phone1: string | null;
+    phone2: string | null;
     personal_website: string | null;
     github_url: string | null;
     linkedin_url: string | null;
@@ -415,8 +415,8 @@ export async function GET(request: NextRequest) {
         bio: profileData.bio,
         about: profileData.about,
         location: profileData.location,
-        phone: profileData.phone,
-        phone_type: profileData.phone_type,
+        phone1: profileData.phone1,
+        phone2: profileData.phone2,
         personal_website: profileData.personal_website,
         github_url: profileData.github_url,
         linkedin_url: profileData.linkedin_url,

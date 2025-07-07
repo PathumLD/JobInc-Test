@@ -43,7 +43,8 @@ export default function CreateProfilePage() {
       // Basic form defaults
       first_name: '',
       last_name: '',
-      phone: '',
+      phone1: '',
+      phone2: '',
       location: '',
       title: '',
       current_position: '',

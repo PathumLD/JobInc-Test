@@ -27,8 +27,8 @@ export interface CandidateDisplayData {
   bio: string | null;
   about: string | null;
   location: string | null;
-  phone: string | null;
-  phone_type: string | null;
+  phone1: string | null;
+  phone2: string | null;
   personal_website: string | null;
   github_url: string | null;
   linkedin_url: string | null;
@@ -218,13 +218,6 @@ export enum AvailabilityStatus {
   AVAILABLE = 'available',
   OPEN_TO_OPPORTUNITIES = 'open_to_opportunities',
   NOT_LOOKING = 'not_looking'
-}
-
-export enum PhoneType {
-  MOBILE = 'mobile',
-  HOME = 'home',
-  WORK = 'work',
-  OTHER = 'other'
 }
 
 export enum LanguageProficiency {
