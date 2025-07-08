@@ -32,7 +32,7 @@ export function useAuthGuard(requiredRole?: string) {
         
         if (!token || isTokenExpired(token)) {
           localStorage.removeItem('token');
-          router.push('/auth/login');
+          router.push('/login');
           return;
         }
 
@@ -49,7 +49,7 @@ export function useAuthGuard(requiredRole?: string) {
       } catch (error) {
         console.error('Auth guard error:', error);
         localStorage.removeItem('token');
-        router.push('/auth/login');
+        router.push('/login');
       }
     };
 

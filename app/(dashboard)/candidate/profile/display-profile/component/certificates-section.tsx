@@ -4,7 +4,7 @@
 import SectionWrapper from '@/components/candidate/profile/section-wrapper';
 import EmptySection from '@/components/candidate/profile/empty-section';
 import CertificateCard from '@/components/candidate/profile/certificate-card';
-import { CertificateDisplayData } from '@/lib/types/profile-display';
+import { CertificateDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { Award } from 'lucide-react';
 
 interface CertificatesSectionProps {

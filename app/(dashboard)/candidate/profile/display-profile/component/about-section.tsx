@@ -41,7 +41,7 @@ export default function AboutSection({ content, onEdit }: AboutSectionProps) {
   return (
     <SectionWrapper 
       title="About"
-      editHref="/candidate/profile/edit/about"
+      // editHref="/candidate/profile/edit/about"
       sectionId="about"
     >
       <div className="space-y-4">
@@ -64,12 +64,6 @@ export default function AboutSection({ content, onEdit }: AboutSectionProps) {
           </Button>
         )}
 
-        {/* Character Count (for reference) */}
-        {content && content.length > 50 && (
-          <div className="text-xs text-gray-500 border-t pt-3 mt-4">
-            {content.length} characters
-          </div>
-        )}
       </div>
     </SectionWrapper>
   );

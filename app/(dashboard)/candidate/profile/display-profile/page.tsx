@@ -21,7 +21,7 @@ import AwardsSection from './component/awards-section';
 import VolunteeringSection from './component/volunteering-section';
 
 // Import types
-import { CompleteProfileData, ProfileDisplayResponse } from '@/lib/types/profile-display';
+import { CompleteProfileData, ProfileDisplayResponse } from '@/lib/types/candidate/profile/profile-display';
 
 interface LoadingState {
   isLoading: boolean;

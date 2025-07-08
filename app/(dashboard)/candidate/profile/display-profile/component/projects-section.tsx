@@ -4,7 +4,7 @@
 import SectionWrapper from '@/components/candidate/profile/section-wrapper';
 import EmptySection from '@/components/candidate/profile/empty-section';
 import ProjectCard from '@/components/candidate/profile/project-card';
-import { ProjectDisplayData } from '@/lib/types/profile-display';
+import { ProjectDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { Folder } from 'lucide-react';
 
 interface ProjectsSectionProps {

@@ -4,8 +4,8 @@
 import SectionWrapper from '@/components/candidate/profile/section-wrapper';
 import EmptySection from '@/components/candidate/profile/empty-section';
 import ExperienceCard from '@/components/candidate/profile/experience-card';
-import { WorkExperienceDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { Briefcase } from 'lucide-react';
+import { WorkExperienceDisplayData } from '@/lib/types/candidate/profile/profile-display';
 
 interface ExperienceSectionProps {
   experiences: WorkExperienceDisplayData[];
@@ -24,7 +24,7 @@ export default function ExperienceSection({ experiences }: ExperienceSectionProp
         <EmptySection
           title="Show your work experience"
           description="Add your professional experience to help recruiters understand your background and career progression."
-          addHref="/candidate/profile/edit-profile/experience/add"
+          addHref="/candidate/profile/edit-profile/experience"
           buttonText="Add experience"
           icon={Briefcase}
         />
@@ -35,7 +35,8 @@ export default function ExperienceSection({ experiences }: ExperienceSectionProp
   return (
     <SectionWrapper 
       title="Experience"
-      addHref="/candidate/profile/edit-profile/experience/add"
+      editHref="/candidate/profile/edit-profile/experience"
+      addHref="/candidate/profile/edit-profile/experience"
       showAddButton={true}
       sectionId="experience"
     >

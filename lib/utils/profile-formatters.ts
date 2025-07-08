@@ -7,7 +7,7 @@ import {
   ProfileSection,
   DEFAULT_COMPLETENESS_CONFIG,
   SkillDisplayData 
-} from '@/lib/types/profile-display';
+} from '@/lib/types/candidate/profile/profile-display';
 
 /**
  * Format date for display in profile sections

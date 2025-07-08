@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Award, Calendar, ExternalLink, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-import { CertificateDisplayData } from '@/lib/types/profile-display';
+import { CertificateDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { 
   formatProfileDate,
   isCertificateExpired,

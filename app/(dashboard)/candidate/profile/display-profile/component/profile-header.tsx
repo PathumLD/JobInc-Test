@@ -15,7 +15,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
-import { CandidateDisplayData } from '@/lib/types/profile-display';
+import { CandidateDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { 
   generateInitials, 
   generateFullName, 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import SectionWrapper from '@/components/candidate/profile/section-wrapper';
 import EmptySection from '@/components/candidate/profile/empty-section';
 import SkillTag from '@/components/candidate/profile/skill-tag';
-import { SkillDisplayData } from '@/lib/types/profile-display';
+import { SkillDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { 
   groupSkillsByCategory, 
   sortSkillsByProficiency 

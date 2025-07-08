@@ -4,7 +4,7 @@
 import SectionWrapper from '@/components/candidate/profile/section-wrapper';
 import EmptySection from '@/components/candidate/profile/empty-section';
 import AwardItem from '@/components/candidate/profile/award-item';
-import { AwardDisplayData } from '@/lib/types/profile-display';
+import { AwardDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { Trophy } from 'lucide-react';
 
 interface AwardsSectionProps {
@@ -18,7 +18,7 @@ export default function AwardsSection({ awards }: AwardsSectionProps) {
     return (
       <SectionWrapper 
         title="Honors & Awards"
-        editHref="/candidate/profile/edit/awards"
+        // editHref="/candidate/profile/edit/awards"
         isEmpty={true}
       >
         <EmptySection

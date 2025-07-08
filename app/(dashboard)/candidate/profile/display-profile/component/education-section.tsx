@@ -4,7 +4,7 @@
 import SectionWrapper from '@/components/candidate/profile/section-wrapper';
 import EmptySection from '@/components/candidate/profile/empty-section';
 import EducationCard from '@/components/candidate/profile/education-card';
-import { EducationDisplayData } from '@/lib/types/profile-display';
+import { EducationDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { GraduationCap } from 'lucide-react';
 
 interface EducationSectionProps {

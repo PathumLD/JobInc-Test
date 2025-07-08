@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, Calendar, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { VolunteeringDisplayData } from '@/lib/types/profile-display';
+import { VolunteeringDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { 
   formatDateRange, 
   calculateDuration 

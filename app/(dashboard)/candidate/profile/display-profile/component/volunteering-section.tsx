@@ -4,7 +4,7 @@
 import SectionWrapper from '@/components/candidate/profile/section-wrapper';
 import EmptySection from '@/components/candidate/profile/empty-section';
 import VolunteerCard from '@/components/candidate/profile/volunteer-card';
-import { VolunteeringDisplayData } from '@/lib/types/profile-display';
+import { VolunteeringDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { Heart } from 'lucide-react';
 
 interface VolunteeringSectionProps {

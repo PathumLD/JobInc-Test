@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, Calendar, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { EducationDisplayData } from '@/lib/types/profile-display';
+import { EducationDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { 
   formatDateRange, 
   calculateDuration 

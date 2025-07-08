@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Trophy, Calendar } from 'lucide-react';
 import Link from 'next/link';
-import { AwardDisplayData } from '@/lib/types/profile-display';
+import { AwardDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { formatProfileDate } from '@/lib/utils/profile-formatters';
 
 interface AwardItemProps {

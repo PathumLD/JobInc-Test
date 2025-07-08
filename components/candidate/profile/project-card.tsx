@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Folder, Calendar, ExternalLink, Github, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { ProjectDisplayData } from '@/lib/types/profile-display';
+import { ProjectDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { 
   formatDateRange, 
   calculateDuration 

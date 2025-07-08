@@ -2,7 +2,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { SkillDisplayData } from '@/lib/types/profile-display';
+import { SkillDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { 
   formatSkillProficiency, 
   getProficiencyLevel 

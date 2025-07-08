@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, AlertCircle, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { ProfileStatsData } from '@/lib/types/profile-display';
+import { ProfileStatsData } from '@/lib/types/candidate/profile/profile-display';
 
 interface ProfileCompletionProps {
   stats: ProfileStatsData;

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building2, MapPin, Calendar } from 'lucide-react';
 import Link from 'next/link';
-import { WorkExperienceDisplayData } from '@/lib/types/profile-display';
+import { WorkExperienceDisplayData } from '@/lib/types/candidate/profile/profile-display';
 import { 
   formatDateRange, 
   calculateDuration, 
@@ -100,7 +100,7 @@ export default function ExperienceCard({
                 className="opacity-0 group-hover:opacity-100 transition-opacity"
                 asChild
               >
-                <Link href={`/candidate/profile/edit/experience/${experience.id}`}>
+                <Link href={`/candidate/profile/edit-profile/experience/${experience.id}`}>
                   Edit
                 </Link>
               </Button>
