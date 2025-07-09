@@ -12,22 +12,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { 
   User, 
   MapPin, 
   Phone, 
-  Mail, 
-  Globe, 
   Calendar,
   Briefcase,
   DollarSign,
   Clock,
-  Upload,
   ArrowLeft,
   Save,
   Loader2,
-  Camera
 } from 'lucide-react';
 import { useAuthGuard, getUserFromToken } from '@/app/api/auth/authGuard';
 import { BasicInfoFormData } from '@/lib/types/candidate/profile/edit-profile';
@@ -35,8 +30,6 @@ import { BasicInfoFormData } from '@/lib/types/candidate/profile/edit-profile';
 export default function BasicInfoEditPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [profileImagePreview, setProfileImagePreview] = useState<string>('');
   const router = useRouter();
 
   useAuthGuard('candidate');
@@ -45,11 +38,8 @@ export default function BasicInfoEditPage() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors, isDirty }
   } = useForm<BasicInfoFormData>();
-
-  const watchedValues = watch();
 
   // Load existing data
   useEffect(() => {
@@ -57,7 +47,7 @@ export default function BasicInfoEditPage() {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          router.push('/auth/login');
+          router.push('/login');
           return;
         }
 
@@ -83,11 +73,6 @@ export default function BasicInfoEditPage() {
               setValue(key as keyof BasicInfoFormData, candidate[key]);
             }
           });
-
-          // Set profile image preview
-          if (candidate.profile_image_url) {
-            setProfileImagePreview(candidate.profile_image_url);
-          }
         }
 
         setIsLoading(false);
@@ -101,43 +86,6 @@ export default function BasicInfoEditPage() {
     loadBasicInfo();
   }, [setValue, router]);
 
-  // Handle profile image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('Image size should be less than 5MB');
-        return;
-      }
-
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file');
-        return;
-      }
-
-      setProfileImage(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-      
-      toast.success('Image selected. It will be uploaded when you save the form.');
-    }
-  };
-
-  // Convert file to base64 for sending with form data
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
-
   // Form submission
   const onSubmit = async (data: BasicInfoFormData) => {
     setIsSaving(true);
@@ -145,31 +93,8 @@ export default function BasicInfoEditPage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/auth/login');
+        router.push('/login');
         return;
-      }
-
-      // Prepare form data including image if selected
-      const formData = {
-        ...data,
-        profile_image_file: null as string | null,
-        profile_image_filename: null as string | null,
-        profile_image_type: null as string | null,
-      };
-
-      // Convert image to base64 if selected
-      if (profileImage) {
-        toast.info('Processing profile image...');
-        try {
-          const base64Image = await fileToBase64(profileImage);
-          formData.profile_image_file = base64Image;
-          formData.profile_image_filename = profileImage.name;
-          formData.profile_image_type = profileImage.type;
-        } catch (error) {
-          console.error('Error processing image:', error);
-          toast.error('Failed to process profile image');
-          // Continue without image
-        }
       }
 
       // Update basic info (including image upload if provided)
@@ -238,46 +163,6 @@ export default function BasicInfoEditPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Profile Image Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Camera className="h-5 w-5 mr-2" />
-                  Profile Image
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-6">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={profileImagePreview} />
-                    <AvatarFallback className="text-lg">
-                      {`${watchedValues.first_name?.[0] || ''}${watchedValues.last_name?.[0] || ''}`}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1">
-                    <Label htmlFor="profile-image" className="cursor-pointer">
-                      <div className="flex items-center justify-center px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors">
-                        <Upload className="h-5 w-5 mr-2 text-gray-400" />
-                        <span className="text-sm text-gray-600">
-                          Click to upload profile image
-                        </span>
-                      </div>
-                      <input
-                        id="profile-image"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                    </Label>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Supported: JPG, PNG, GIF (max 5MB)
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Personal Information */}
             <Card>

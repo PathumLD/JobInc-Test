@@ -121,26 +121,26 @@ export async function POST(request: NextRequest) {
 
     console.log(' Image validation passed');
 
-    // 4. Check if user and candidate exist
-    const user = await prisma.user.findUnique({
-      where: { id: payload.userId },
-      include: {
-        candidate: true
+    // 4. Check if candidate exists and get current image
+    const candidate = await prisma.candidate.findUnique({
+      where: { user_id: payload.userId },
+      select: {
+        profile_image_url: true
       }
     });
 
-    if (!user) {
+    if (!candidate) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Candidate profile not found' },
         { status: 404 }
       );
     }
 
     // 5. Delete old profile image from storage if exists
-    if (user.profile_image_url) {
+    if (candidate.profile_image_url) {
       try {
         console.log(' Deleting old profile image...');
-        const oldUrl = user.profile_image_url;
+        const oldUrl = candidate.profile_image_url;
         const urlParts = oldUrl.split('/');
         const bucketIndex = urlParts.findIndex(part => part === 'profile-images');
         
@@ -170,23 +170,13 @@ export async function POST(request: NextRequest) {
     const imageUrl = await uploadImageToSupabase(image, fileName);
     console.log(' Image uploaded successfully:', imageUrl);
 
-    // 7. Update user's profile image URL in database
-    const updatedUser = await prisma.$transaction(async (tx) => {
-      // Update user's profile image URL
-      const updated = await tx.user.update({
-        where: { id: payload.userId },
-        data: { profile_image_url: imageUrl }
-      });
-
-      // Update candidate's updated_at timestamp if candidate exists
-      if (user.candidate) {
-        await tx.candidate.update({
-          where: { user_id: payload.userId },
-          data: { updated_at: new Date() }
-        });
+    // 7. Update candidate's profile image URL in database
+    const updatedCandidate = await prisma.candidate.update({
+      where: { user_id: payload.userId },
+      data: { 
+        profile_image_url: imageUrl,
+        updated_at: new Date()
       }
-
-      return updated;
     });
 
     console.log(' Profile image URL updated in database');
@@ -262,25 +252,22 @@ export async function DELETE(request: NextRequest) {
 
     console.log(' Token validated for userId:', payload.userId);
 
-    // 2. Get current user with profile image
-    const user = await prisma.user.findUnique({
-      where: { id: payload.userId },
+    // 2. Get current candidate with profile image
+    const candidate = await prisma.candidate.findUnique({
+      where: { user_id: payload.userId },
       select: { 
-        profile_image_url: true,
-        candidate: {
-          select: { user_id: true }
-        }
+        profile_image_url: true
       }
     });
 
-    if (!user) {
+    if (!candidate) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Candidate profile not found' },
         { status: 404 }
       );
     }
 
-    if (!user.profile_image_url) {
+    if (!candidate.profile_image_url) {
       return NextResponse.json(
         { error: 'No profile image to delete' },
         { status: 400 }
@@ -290,7 +277,7 @@ export async function DELETE(request: NextRequest) {
     // 3. Delete from Supabase storage
     try {
       console.log(' Deleting profile image from storage...');
-      const imageUrl = user.profile_image_url;
+      const imageUrl = candidate.profile_image_url;
       const urlParts = imageUrl.split('/');
       const bucketIndex = urlParts.findIndex(part => part === 'profile-images');
       
@@ -314,19 +301,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 4. Update database to remove profile image URL
-    await prisma.$transaction(async (tx) => {
-      // Remove profile image URL from user
-      await tx.user.update({
-        where: { id: payload.userId },
-        data: { profile_image_url: null }
-      });
-
-      // Update candidate's updated_at timestamp if candidate exists
-      if (user.candidate) {
-        await tx.candidate.update({
-          where: { user_id: payload.userId },
-          data: { updated_at: new Date() }
-        });
+    await prisma.candidate.update({
+      where: { user_id: payload.userId },
+      data: { 
+        profile_image_url: null,
+        updated_at: new Date()
       }
     });
 

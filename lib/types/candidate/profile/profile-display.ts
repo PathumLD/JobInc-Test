@@ -1,4 +1,4 @@
-// lib/types/profile-display.ts
+// lib/types/candidate/profile/profile-display.ts
 
 // Complete profile data interface for display
 export interface CompleteProfileData {
@@ -38,6 +38,7 @@ export interface CandidateDisplayData {
   availability_status: string | null;
   availability_date: Date | null;
   resume_url: string | null;
+  profile_image_url: string | null;
   profile_completion_percentage: number | null;
   created_at: Date | null;
   updated_at: Date | null;
@@ -193,6 +194,21 @@ export interface ProfileDisplayResponse {
   data?: CompleteProfileData;
   error?: string;
   message?: string;
+}
+
+// Image upload response interface
+export interface ImageUploadResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    image_url: string;
+    file_name: string;
+    file_size: number;
+    file_type: string;
+    uploaded_at: string;
+  };
+  error?: string;
+  details?: string;
 }
 
 // Enums for consistent data values

@@ -27,6 +27,7 @@ interface CompleteProfileData {
     availability_status: string | null;
     availability_date: Date | null;
     resume_url: string | null;
+    profile_image_url: string | null; // ✅ Now from candidate table
     profile_completion_percentage: number | null;
     created_at: Date | null;
     updated_at: Date | null;
@@ -426,6 +427,7 @@ export async function GET(request: NextRequest) {
         availability_status: profileData.availability_status,
         availability_date: profileData.availability_date,
         resume_url: profileData.resume_url,
+        profile_image_url: profileData.profile_image_url, // ✅ Now from candidate table directly
         profile_completion_percentage: profileData.profile_completion_percentage,
         created_at: profileData.created_at,
         updated_at: profileData.updated_at,

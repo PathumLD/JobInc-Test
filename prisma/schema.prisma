@@ -271,7 +271,6 @@ model User {
   id                        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email                     String             @unique @db.VarChar(255)
   password                  String?            @db.VarChar(255)
-  profile_image_url         String?
   role                      UserType?
   status                    UserStatus?        @default(pending_verification)
   email_verified            Boolean?           @default(false)
@@ -319,6 +318,7 @@ model Candidate {
   expected_salary_min           Float?             @default(0)
   expected_salary_max           Float?             @default(0)
   currency                      String?            @default("USD") @db.VarChar(4)
+  profile_image_url             String?
   availability_status           AvailabilityStatus? @default(available)
   availability_date             DateTime?          @db.Date
   resume_url                    String?

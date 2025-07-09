@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
-import { createClient } from '@supabase/supabase-js';
 import { validateToken } from '@/lib/auth';
 import { BasicInfoFormData } from '@/lib/types/candidate/profile/edit-profile';
 
@@ -12,75 +11,6 @@ interface JWTPayload {
   email: string;
   role: string;
   exp: number;
-}
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-
-// Helper function to generate unique file name for profile images
-function generateUniqueImageName(originalName: string, userId: string): string {
-  const timestamp = Date.now();
-  const extension = originalName.split('.').pop() || 'jpg';
-  const sanitizedName = originalName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9-_]/g, '-');
-  return `profile-images/${userId}/${timestamp}-${sanitizedName}.${extension}`;
-}
-
-// Helper function to upload image to Supabase storage
-async function uploadImageToSupabase(base64Data: string, fileName: string, contentType: string): Promise<string> {
-  try {
-    // Convert base64 to buffer
-    const base64WithoutPrefix = base64Data.replace(/^data:image\/[a-z]+;base64,/, '');
-    const buffer = Buffer.from(base64WithoutPrefix, 'base64');
-
-    const { data, error } = await supabase.storage
-      .from('images')
-      .upload(fileName, buffer, {
-        cacheControl: '3600',
-        upsert: true,
-        contentType: contentType
-      });
-
-    if (error) {
-      console.error('Supabase image upload error:', error);
-      throw new Error(`Failed to upload image: ${error.message}`);
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('images')
-      .getPublicUrl(data.path);
-
-    return urlData.publicUrl;
-  } catch (error) {
-    console.error('Image upload error:', error);
-    throw error;
-  }
-}
-
-// Helper function to delete old image from storage
-async function deleteImageFromSupabase(imageUrl: string): Promise<void> {
-  try {
-    const urlParts = imageUrl.split('/');
-    const bucketIndex = urlParts.findIndex(part => part === 'profile-images');
-    
-    if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
-      const filePath = urlParts.slice(bucketIndex).join('/');
-      
-      const { error } = await supabase.storage
-        .from('images')
-        .remove([filePath]);
-
-      if (error) {
-        console.warn('Failed to delete old image from storage:', error);
-      }
-    }
-  } catch (error) {
-    console.warn('Error deleting old image:', error);
-  }
 }
 
 // Helper function to validate enum values
@@ -94,15 +24,9 @@ function validateAndSanitizeData(data: BasicInfoFormData): {
   isValid: boolean; 
   errors: string[]; 
   sanitizedData: any;
-  imageData?: {
-    file: string;
-    filename: string;
-    type: string;
-  } | null;
 } {
   const errors: string[] = [];
   const sanitizedData: any = {};
-  let imageData = null;
 
   // Personal Information validation
   if (data.first_name !== undefined) {
@@ -380,7 +304,7 @@ function validateAndSanitizeData(data: BasicInfoFormData): {
     }
   });
 
-  // Handle profile image URL (if present)
+  // Handle profile image URL (if present) - ✅ Now stays in candidate table
   if (data.profile_image_url !== undefined) {
     sanitizedData.profile_image_url = data.profile_image_url?.trim() || null;
   }
@@ -391,8 +315,7 @@ function validateAndSanitizeData(data: BasicInfoFormData): {
   return {
     isValid: errors.length === 0,
     errors,
-    sanitizedData,
-    imageData
+    sanitizedData
   };
 }
 
@@ -446,7 +369,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // 5. Update the candidate record
+    // 5. Update the candidate record (including profile_image_url if provided)
     console.log(' Updating candidate basic info...');
     
     const updatedCandidate = await prisma.candidate.update({
@@ -456,18 +379,7 @@ export async function PUT(request: NextRequest) {
 
     console.log(' Basic info updated successfully');
 
-    // 6. Also update the profile image URL in the User model if provided
-    if (sanitizedData.profile_image_url !== undefined) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: { 
-          profile_image_url: sanitizedData.profile_image_url 
-        }
-      });
-      console.log(' Profile image URL updated in User model');
-    }
-
-    // 7. Calculate and update profile completion percentage
+    // 6. Calculate and update profile completion percentage
     const completionData = {
       basic_info: !!(updatedCandidate.first_name && updatedCandidate.last_name && updatedCandidate.title),
       contact_info: !!(updatedCandidate.phone1 || updatedCandidate.linkedin_url),
@@ -489,7 +401,7 @@ export async function PUT(request: NextRequest) {
       console.log(` Profile completion updated to ${newCompletionPercentage}%`);
     }
 
-    // 8. Prepare response data
+    // 7. Prepare response data
     const responseData = {
       user_id: updatedCandidate.user_id,
       first_name: updatedCandidate.first_name,
@@ -532,7 +444,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// GET method to fetch current basic info (optional - for pre-populating form)
+// GET method to fetch current basic info
 export async function GET(request: NextRequest) {
   console.log('=== Basic Info Fetch API Called ===');
   
@@ -637,16 +549,12 @@ export async function GET(request: NextRequest) {
         pre_qualified: true,
         profile_completion_percentage: true,
         
+        // Profile Image - ✅ Now from candidate table
+        profile_image_url: true,
+        
         // Timestamps
         created_at: true,
-        updated_at: true,
-        
-        // Include user data for profile image
-        user: {
-          select: {
-            profile_image_url: true
-          }
-        }
+        updated_at: true
       }
     });
 
@@ -659,11 +567,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: {
-        ...candidate,
-        profile_image_url: candidate.user?.profile_image_url || null,
-        user: undefined // Remove user object from response
-      }
+      data: candidate
     });
 
   } catch (error: any) {
