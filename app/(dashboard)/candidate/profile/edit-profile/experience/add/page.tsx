@@ -1,8 +1,8 @@
-// app/(dashboard)/candidate/profile/edit/experience/[id]/page.tsx
+// app/(dashboard)/candidate/profile/edit/experience/add/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -19,19 +19,16 @@ import {
   Loader2,
   Plus,
   Trash2,
-  Award,
-  AlertTriangle
+  Award
 } from 'lucide-react';
 import { useAuthGuard } from '@/app/api/auth/authGuard';
 
 interface AccomplishmentFormData {
-  id?: string;
   title: string;
   description: string;
 }
 
 interface WorkExperienceFormData {
-  id?: string;
   title: string;
   company: string;
   employment_type: string;
@@ -46,16 +43,9 @@ interface WorkExperienceFormData {
   accomplishments: AccomplishmentFormData[];
 }
 
-export default function ExperienceAddEditPage() {
-  const [isLoading, setIsLoading] = useState(true);
+export default function AddExperiencePage() {
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const router = useRouter();
-  const params = useParams();
-  
-  const experienceId = params.id as string;
-  const isEditing = experienceId && experienceId !== 'add';
 
   useAuthGuard('candidate');
 
@@ -90,110 +80,12 @@ export default function ExperienceAddEditPage() {
 
   const watchedValues = watch();
 
-  // Load existing experience data for editing
-  useEffect(() => {
-    const loadExperience = async () => {
-      if (!isEditing) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          router.push('/login');
-          return;
-        }
-
-        const response = await fetch(`/api/candidate/profile/edit-profile/experience/${experienceId}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            toast.error('Experience not found');
-            router.push('/candidate/profile/edit-profile/experience');
-            return;
-          }
-          throw new Error('Failed to load experience data');
-        }
-
-        const result = await response.json();
-        if (result.success && result.data) {
-          const exp = result.data;
-          
-          // Set form values
-          setValue('id', exp.id);
-          setValue('title', exp.title || '');
-          setValue('company', exp.company || '');
-          setValue('employment_type', exp.employment_type || 'full_time');
-          setValue('is_current', exp.is_current || false);
-          setValue('start_date', exp.start_date ? new Date(exp.start_date).toISOString().split('T')[0] : '');
-          setValue('end_date', exp.end_date ? new Date(exp.end_date).toISOString().split('T')[0] : '');
-          setValue('location', exp.location || '');
-          setValue('description', exp.description || '');
-          setValue('job_source', exp.job_source || '');
-          setValue('skill_ids', exp.skill_ids || []);
-          setValue('media_url', exp.media_url || '');
-          setValue('accomplishments', exp.accomplishments || []);
-        }
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error loading experience data:', error);
-        toast.error('Failed to load experience data');
-        router.push('/candidate/profile/display-profile');
-      }
-    };
-
-    loadExperience();
-  }, [isEditing, experienceId, setValue, router]);
-
   // Add new accomplishment
   const addAccomplishment = () => {
     appendAccomplishment({
       title: '',
       description: ''
     });
-  };
-
-  // Delete experience
-  const handleDelete = async () => {
-    if (!isEditing) return;
-
-    setIsDeleting(true);
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      const response = await fetch(`/api/candidate/profile/edit-profile/experience/${experienceId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete experience');
-      }
-
-      toast.success('Experience deleted successfully');
-      router.push('/candidate/profile/edit-profile/experience');
-    } catch (error) {
-      console.error('Error deleting experience:', error);
-      toast.error('Failed to delete experience');
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteConfirm(false);
-    }
   };
 
   // Form submission
@@ -203,10 +95,11 @@ export default function ExperienceAddEditPage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
+      // Prepare data for API
       const requestData = {
         ...data,
         start_date: data.start_date || null,
@@ -215,12 +108,8 @@ export default function ExperienceAddEditPage() {
         accomplishments: data.accomplishments || []
       };
 
-      const url = isEditing 
-        ? `/api/candidate/profile/edit-profile/experience/${experienceId}`
-        : '/api/candidate/profile/edit-profile/experience/add';
-
-      const response = await fetch(url, {
-        method: isEditing ? 'PUT' : 'POST',
+      const response = await fetch('/api/candidate/profile/edit-profile/experience/add', {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -230,35 +119,24 @@ export default function ExperienceAddEditPage() {
 
       if (!response.ok) {
         const errorResult = await response.json();
-        throw new Error(errorResult.details?.join(', ') || 'Failed to save experience');
+        throw new Error(errorResult.details?.join(', ') || 'Failed to add experience');
       }
 
       const result = await response.json();
       if (result.success) {
-        toast.success(`Experience ${isEditing ? 'updated' : 'added'} successfully!`);
+        toast.success('Experience added successfully!');
         router.push('/candidate/profile/display-profile');
       } else {
-        throw new Error(result.error || 'Save failed');
+        throw new Error(result.error || 'Add failed');
       }
 
     } catch (error) {
-      console.error('Error saving experience:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save experience');
+      console.error('Error adding experience:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to add experience');
     } finally {
       setIsSaving(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-          <span className="ml-2 text-lg">Loading experience...</span>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -270,37 +148,17 @@ export default function ExperienceAddEditPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push('/candidate/profile/display-profile')}
+                onClick={() => router.push('/candidate/profile/edit/experience')}
                 className="flex items-center"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Experience
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {isEditing ? 'Edit Experience' : 'Add Experience'}
-                </h1>
-                <p className="text-gray-600">
-                  {isEditing ? 'Update your work experience details' : 'Add a new work experience'}
-                </p>
+                <h1 className="text-2xl font-bold text-gray-900">Add Experience</h1>
+                <p className="text-gray-600">Add a new work experience to your profile</p>
               </div>
             </div>
-            {isEditing && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={isDeleting}
-                className="flex items-center bg-red-400 hover:bg-red-600 text-white"
-              >
-                {isDeleting ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4 mr-1" />
-                )}
-                Delete
-              </Button>
-            )}
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -342,7 +200,7 @@ export default function ExperienceAddEditPage() {
                   <Label htmlFor="employment_type">Employment Type</Label>
                   <Select 
                     onValueChange={(value) => setValue('employment_type', value)}
-                    defaultValue={watchedValues.employment_type}
+                    defaultValue="full_time"
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select employment type" />
@@ -453,17 +311,18 @@ export default function ExperienceAddEditPage() {
                     Add Accomplishment
                   </Button>
                 </div>
-                <span className="text-sm text-gray-500 px-8">
-                    <li>You can add accomplishments related to this experience.</li>
-                    
-                </span>
+                <p className="text-sm text-gray-600 mt-1">
+                  Add key accomplishments and achievements for this role
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 {accomplishmentFields.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Award className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>No your accomplishments added yet.</p>
-                    <p className="text-sm">Click "Add Accomplishment" to highlight your achievements.</p>
+                    <p className="text-gray-600 mb-2">No accomplishments added yet</p>
+                    <p className="text-sm text-gray-500">
+                      Click "Add Accomplishment" to highlight your key achievements in this role
+                    </p>
                   </div>
                 ) : (
                   accomplishmentFields.map((field, index) => (
@@ -526,72 +385,41 @@ export default function ExperienceAddEditPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push('/candidate/profile/display-profile')}
+                onClick={() => router.push('/candidate/profile/edit/experience')}
                 disabled={isSaving}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={isSaving || (!isDirty && isEditing)}
-                className="min-w-[120px]"
+                disabled={isSaving}
+                className="min-w-[140px]"
               >
                 {isSaving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
+                    Adding...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    {isEditing ? 'Update Experience' : 'Add Experience'}
+                    Add Experience
                   </>
                 )}
               </Button>
             </div>
           </form>
 
-          {/* Delete Confirmation Dialog */}
-          {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <Card className="w-full max-w-md mx-4">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-red-600">
-                    <AlertTriangle className="h-5 w-5 mr-2" />
-                    Delete Experience
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 mb-4">
-                    Are you sure you want to delete this experience? This action cannot be undone.
-                  </p>
-                  <div className="flex justify-end space-x-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowDeleteConfirm(false)}
-                      disabled={isDeleting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={handleDelete}
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Deleting...
-                        </>
-                      ) : (
-                        'Delete Experience'
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          {/* Help Text */}
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 className="text-sm font-medium text-blue-900 mb-2">Tips for adding experience:</h3>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• Use specific job titles that accurately reflect your role</li>
+              <li>• Include quantifiable accomplishments when possible</li>
+              <li>• Describe your responsibilities and impact in the role</li>
+              <li>• Add accomplishments that demonstrate your value and growth</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

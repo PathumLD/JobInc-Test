@@ -13,6 +13,7 @@ import { WorkExperience } from '@prisma/client';
 
 // Updated interfaces for proper linking
 interface AccomplishmentFormData {
+  id?: string; // Add unique ID for tracking
   title: string;
   description: string;
   temp_work_experience_index?: number; // For frontend relationship tracking
@@ -25,6 +26,9 @@ interface SkillFormData {
   skill_source?: string;
   proficiency?: number;
 }
+
+// Add unique ID generator for accomplishments
+const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 export default function WorkExperiencesForm({
   onBack,
@@ -114,21 +118,26 @@ export default function WorkExperiencesForm({
     setValue('work_experience', updatedExperiences);
   };
 
-  // Updated accomplishments functions
+  // FIXED: Updated accomplishments functions with better tracking
   const addNewAccomplishment = (experienceIndex: number) => {
-  const newAccomplishment: AccomplishmentFormData = {
-    title: '',
-    description: '',
-    temp_work_experience_index: experienceIndex, // This will be mapped to work_experience_id in backend
-    work_experience_id: null, // Will be set by backend
-    resume_id: null,
-  };
-  
-  setValue('accomplishments', [...accomplishments, newAccomplishment]);
+    const newAccomplishment: AccomplishmentFormData = {
+      id: generateTempId(), // Add unique tracking ID
+      title: '',
+      description: '',
+      temp_work_experience_index: experienceIndex, // This will be mapped to work_experience_id in backend
+      work_experience_id: null, // Will be set by backend
+      resume_id: null,
+    };
+    
+    console.log(`Adding accomplishment for experience index ${experienceIndex}:`, newAccomplishment);
+    setValue('accomplishments', [...accomplishments, newAccomplishment]);
   };
 
   const removeAccomplishment = (accomplishmentIndex: number) => {
     const updatedAccomplishments = [...accomplishments];
+    const removedAcc = updatedAccomplishments[accomplishmentIndex];
+    console.log(`Removing accomplishment at index ${accomplishmentIndex}:`, removedAcc);
+    
     updatedAccomplishments.splice(accomplishmentIndex, 1);
     setValue('accomplishments', updatedAccomplishments);
   };
@@ -141,9 +150,11 @@ export default function WorkExperiencesForm({
     const updatedAccomplishments = [...accomplishments];
     updatedAccomplishments[accomplishmentIndex][field] = value;
     setValue('accomplishments', updatedAccomplishments);
+    
+    console.log(`Updated accomplishment ${accomplishmentIndex} ${field}:`, value);
   };
 
-  // Skills functions
+  // Skills functions (unchanged)
   const addSkill = (experienceIndex: number) => {
     const skillName = skillInput[`experience-${experienceIndex}`]?.trim();
     if (!skillName) return;
@@ -180,7 +191,7 @@ export default function WorkExperiencesForm({
     setValue('work_experience', updatedExperiences);
   };
 
-  // Handle file upload
+  // Handle file upload (unchanged)
   const handleFileUpload = (experienceIndex: number, file: File | null) => {
     setMediaFiles(prev => ({
       ...prev,
@@ -194,19 +205,36 @@ export default function WorkExperiencesForm({
     }
   };
 
-  // Get accomplishments for a specific experience
+  // FIXED: Get accomplishments for a specific experience with better debugging
   const getExperienceAccomplishments = (experienceIndex: number) => {
-    return accomplishments
+    const filteredAccomplishments = accomplishments
       .map((acc: AccomplishmentFormData, index: number) => ({ ...acc, originalIndex: index }))
       .filter(acc => acc.temp_work_experience_index === experienceIndex);
+    
+    console.log(`Getting accomplishments for experience ${experienceIndex}:`, {
+      total: accomplishments.length,
+      filtered: filteredAccomplishments.length,
+      accomplishments: filteredAccomplishments
+    });
+    
+    return filteredAccomplishments;
   };
 
-  // Get skills for a specific experience
+  // Get skills for a specific experience (unchanged)
   const getExperienceSkills = (experienceIndex: number) => {
     return candidateSkills.filter(
       skill => skill.skill_source === `work_experience_${experienceIndex}`
     );
   };
+
+  // Debug: Log current state
+  useEffect(() => {
+    console.log('Current form state:', {
+      workExperiences: workExperiences.length,
+      accomplishments: accomplishments.length,
+      accomplishmentsData: accomplishments
+    });
+  }, [workExperiences, accomplishments]);
 
   return (
     <div className="space-y-8">
@@ -435,7 +463,7 @@ export default function WorkExperiencesForm({
                 </div>
               </div>
 
-              {/* Accomplishments Section for this Experience */}
+              {/* ENHANCED: Accomplishments Section with better debugging */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h4 className="font-medium">
@@ -445,7 +473,10 @@ export default function WorkExperiencesForm({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => addNewAccomplishment(index)}
+                    onClick={() => {
+                      console.log(`Adding accomplishment for experience index: ${index}`);
+                      addNewAccomplishment(index);
+                    }}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Accomplishment
@@ -454,16 +485,22 @@ export default function WorkExperiencesForm({
                 
                 {getExperienceAccomplishments(index).length === 0 && (
                   <p className="text-sm text-gray-500 italic">
-                    No accomplishments added yet. Click `Add Accomplishment` to highlight your achievements in this role.
+                    No accomplishments added yet. Click "Add Accomplishment" to highlight your achievements in this role.
                   </p>
                 )}
 
                 {getExperienceAccomplishments(index).length > 0 && (
                   <div className="space-y-4">
                     {getExperienceAccomplishments(index).map((accomplishment, accomplishmentIndex) => (
-                      <div key={accomplishment.originalIndex} className="p-4 bg-gray-50 rounded-lg">
+                      <div key={accomplishment.id || accomplishment.originalIndex} className="p-4 bg-gray-50 rounded-lg">
                         <div className="flex justify-between items-center mb-3">
-                          <h5 className="font-medium text-sm">Accomplishment #{accomplishmentIndex + 1}</h5>
+                          <h5 className="font-medium text-sm">
+                            Accomplishment #{accomplishmentIndex + 1}
+                            {/* Debug info */}
+                            <span className="text-xs text-gray-500 ml-2">
+                              (Experience Index: {accomplishment.temp_work_experience_index})
+                            </span>
+                          </h5>
                           <Button
                             type="button"
                             variant="ghost"

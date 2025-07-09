@@ -281,7 +281,7 @@ export default function BasicInfoForm({
           </div>
 
           <div>
-            <Label htmlFor="phone2">Phone Number 1</Label>
+            <Label htmlFor="phone2">Phone Number 2</Label>
             <Input
               id="phone2"
               {...register('phone2')}
