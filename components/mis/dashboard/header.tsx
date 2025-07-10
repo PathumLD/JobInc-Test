@@ -1,5 +1,6 @@
 'use client';
 
+
 export default function MisHeader({ userName, role, onLogout }: { userName: string | null, role: string | null, onLogout: () => void }) {
   return (
     <nav className="w-full bg-white shadow px-8 py-4 flex items-center justify-between">

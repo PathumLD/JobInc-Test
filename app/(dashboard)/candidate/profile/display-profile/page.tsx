@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Loader2, AlertCircle, User, RefreshCw } from 'lucide-react';
+import { Loader2, AlertCircle, User, RefreshCw, ArrowBigLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthGuard, getUserFromToken } from '@/app/api/auth/authGuard';
 
@@ -181,12 +181,12 @@ export default function DisplayProfilePage() {
             </p>
             <div className="space-y-2">
               <Button 
-                onClick={() => fetchProfileData(true)}
-                className="w-full"
+                variant="outline"
+                onClick={() => router.push('/candidate/dashboard')}
+                size="sm"
                 disabled={loadingState.isLoading}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
+                <ArrowBigLeft /> Back to Dashboard
               </Button>
               <Button 
                 variant="outline"
@@ -239,12 +239,11 @@ export default function DisplayProfilePage() {
             <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
             <Button 
               variant="outline"
-              onClick={() => fetchProfileData(true)}
+              onClick={() => router.push('/candidate/dashboard')}
               size="sm"
               disabled={loadingState.isLoading}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loadingState.isLoading ? 'animate-spin' : ''}`} />
-              Refresh
+              <ArrowBigLeft />Back to Dashboard
             </Button>
           </div>
 

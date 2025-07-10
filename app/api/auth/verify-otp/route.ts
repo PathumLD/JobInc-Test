@@ -22,7 +22,6 @@ export async function POST(req: NextRequest) {
       select: {
         id: true,
         email_verification_token: true,
-        email_verification_token_expires: true,
         email_verified: true,
         status: true,
       },
@@ -49,21 +48,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (user.email_verification_token_expires && 
-        user.email_verification_token_expires < new Date()) {
-      return NextResponse.json(
-        { error: 'Verification code has expired' },
-        { status: 400 }
-      );
-    }
-
     // Update user: set email_verified, clear token, set status to active
     await prisma.user.update({
       where: { id: user.id },
       data: {
         email_verified: true,
         email_verification_token: null,
-        email_verification_token_expires: null,
         status: 'active',
       },
     });
