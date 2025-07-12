@@ -294,7 +294,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
         {/* Top Navigation */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xs">JP</span>
             </div>
             <span className="text-lg font-bold text-gray-900">Job Portal</span>
@@ -315,7 +315,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
           <div className="w-full max-w-sm">
             {/* Header */}
             <div className="text-center mb-4">
-              <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
                 <UserPlus className="h-6 w-6 text-white" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-1">
@@ -330,7 +330,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
             {message && (
               <div className={`flex items-center gap-2 p-3 mb-4 rounded-lg border ${
                 message.type === 'success' 
-                  ? 'bg-green-50 text-green-700 border-green-200' 
+                  ? 'bg-blue-50 text-blue-700 border-blue-200' 
                   : 'bg-red-50 text-red-700 border-red-200'
               }`}>
                 {message.type === 'success' ? (
@@ -355,7 +355,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
                     id="email" 
                     type="email" 
                     placeholder="Enter your email address"
-                    className={`pl-10 h-9 text-sm border-gray-300 focus:border-green-500 focus:ring-green-500 ${
+                    className={`pl-10 h-9 text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${
                       errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                     }`}
                     {...register('email')} 
@@ -380,7 +380,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
                     id="password" 
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Create a strong password"
-                    className={`pl-10 pr-10 h-9 text-sm border-gray-300 focus:border-green-500 focus:ring-green-500 ${
+                    className={`pl-10 pr-10 h-9 text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${
                       errors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                     }`}
                     {...register('password')} 
@@ -403,7 +403,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
                           key={level}
                           className={`h-1 flex-1 rounded-full transition-colors duration-200 ${
                             level <= passwordStrength.strength
-                              ? level <= 2 ? 'bg-red-500' : level <= 3 ? 'bg-yellow-500' : 'bg-green-500'
+                              ? level <= 2 ? 'bg-red-500' : level <= 3 ? 'bg-yellow-500' : 'bg-blue-500'
                               : 'bg-gray-200'
                           }`}
                         />
@@ -436,7 +436,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
                     id="confirmPassword" 
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Confirm your password"
-                    className={`pl-10 pr-10 h-9 text-sm border-gray-300 focus:border-green-500 focus:ring-green-500 ${
+                    className={`pl-10 pr-10 h-9 text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${
                       errors.confirmPassword ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                     }`}
                     {...register('confirmPassword')} 
@@ -455,8 +455,8 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
                   <div className="flex items-center gap-1 text-xs">
                     {confirmPassword === password ? (
                       <>
-                        <CheckCircle className="h-3 w-3 text-green-600" />
-                        <span className="text-green-600">Passwords match</span>
+                        <CheckCircle className="h-3 w-3 text-blue-600" />
+                        <span className="text-blue-600">Passwords match</span>
                       </>
                     ) : (
                       <>
@@ -480,7 +480,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
                 type="submit" 
                 disabled={isLoading} 
                 onClick={handleSubmit(onSubmit)}
-                className="w-full bg-green-600 hover:bg-green-700 text-white transition-colors duration-200 h-9 text-sm"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 h-9 text-sm"
               >
                 {isLoading ? (
                   <>
@@ -500,7 +500,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
             <div className="mt-4 pt-3 border-t border-gray-200 text-center">
               <p className="text-xs text-gray-600">
                 Already have an account?{' '}
-                <a href="/login" className="text-green-600 hover:text-green-700 font-medium transition-colors duration-200">
+                <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200">
                   Sign in here
                 </a>
               </p>

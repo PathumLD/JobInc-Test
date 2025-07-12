@@ -266,7 +266,7 @@ export default function LoginPage() {
         {/* Top Navigation */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xs">JP</span>
             </div>
             <span className="text-lg font-bold text-gray-900">Job Portal</span>
@@ -287,7 +287,7 @@ export default function LoginPage() {
           <div className="w-full max-w-sm">
           {/* Header */}
           <div className="text-center mb-6">
-            <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
               <LogIn className="h-6 w-6 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -302,7 +302,7 @@ export default function LoginPage() {
           {message && (
             <div className={`flex items-center gap-3 p-4 mb-6 rounded-lg border ${
               message.type === 'success' 
-                ? 'bg-green-50 text-green-700 border-green-200' 
+                ? 'bg-blue-50 text-blue-700 border-blue-200' 
                 : 'bg-red-50 text-red-700 border-red-200'
             }`}>
               {message.type === 'success' ? (
@@ -329,7 +329,7 @@ export default function LoginPage() {
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                  className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -348,7 +348,7 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                  className="pl-10 pr-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   required
                 />
                 <button
@@ -365,7 +365,7 @@ export default function LoginPage() {
             <div className="flex justify-end">
               <a 
                 href="/forgot-password" 
-                className="text-sm text-green-600 hover:text-green-700 font-medium transition-colors duration-200"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
               >
                 Forgot your password?
               </a>
@@ -376,7 +376,7 @@ export default function LoginPage() {
               type="submit" 
               disabled={isLoading || isGoogleLoading}
               onClick={handleSubmit}
-              className="w-full bg-green-600 hover:bg-green-700 text-white transition-colors duration-200 h-10"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 h-10"
             >
               {isLoading ? (
                 <>
@@ -427,7 +427,7 @@ export default function LoginPage() {
           <div className="mt-6 pt-4 border-t border-gray-200 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <a href="/register" className="text-green-600 hover:text-green-700 font-medium transition-colors duration-200">
+              <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200">
                 Sign up here
               </a>
             </p>

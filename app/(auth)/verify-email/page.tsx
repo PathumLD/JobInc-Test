@@ -191,8 +191,8 @@ export default function VerifyEmailPage() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Mail className="h-8 w-8 text-green-600" />
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Mail className="h-8 w-8 text-blue-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h2>
           <p className="text-gray-600 text-sm">
@@ -207,7 +207,7 @@ export default function VerifyEmailPage() {
         {message && (
           <div className={`flex items-center gap-3 p-4 mb-6 rounded-lg border ${
             message.type === 'success' 
-              ? 'bg-green-50 text-green-700 border-green-200' 
+              ? 'bg-blue-50 text-blue-700 border-blue-200' 
               : message.type === 'error'
               ? 'bg-red-50 text-red-700 border-red-200'
               : 'bg-blue-50 text-blue-700 border-blue-200'
@@ -250,7 +250,7 @@ export default function VerifyEmailPage() {
                   onChange={e => handleOtpChange(index, e.target.value)}
                   onKeyDown={e => handleKeyDown(index, e)}
                   onPaste={handlePaste}
-                  className="w-12 h-12 text-center text-lg font-semibold border-2 focus:border-green-500 focus:ring-green-500"
+                  className="w-12 h-12 text-center text-lg font-semibold border-2 focus:border-blue-500 focus:ring-blue-500"
                   placeholder="0"
                 />
               ))}
@@ -272,7 +272,7 @@ export default function VerifyEmailPage() {
           <Button 
             type="submit" 
             disabled={isLoading || otp.join('').length !== 6}
-            className="w-full bg-green-600 hover:bg-green-700 text-white transition-colors duration-200 h-12"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 h-12"
           >
             {isLoading ? (
               <>
@@ -297,7 +297,7 @@ export default function VerifyEmailPage() {
               variant="outline"
               onClick={handleResendOtp}
               disabled={!canResend || isResending}
-              className="text-green-600 border-green-600 hover:bg-green-50"
+              className="text-blue-600 border-blue-600 hover:bg-blue-50"
             >
               {isResending ? (
                 <>
@@ -329,7 +329,7 @@ export default function VerifyEmailPage() {
         <div className="mt-6 pt-4 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-500">
             Having trouble? Contact our{' '}
-            <a href="/support" className="text-green-600 hover:text-green-700 font-medium">
+            <a href="/support" className="text-blue-600 hover:text-blue-700 font-medium">
               support team
             </a>
           </p>

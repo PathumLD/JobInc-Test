@@ -271,7 +271,7 @@ export default function JobList() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pl-10 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function JobList() {
               Job Type
             </label>
             <select
-              className="h-10 px-3 border border-gray-300 rounded-md focus:border-green-500 focus:ring-green-500 bg-white text-sm min-w-[140px]"
+              className="h-10 px-3 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500 bg-white text-sm min-w-[140px]"
               value={typeInput}
               onChange={(e) => setTypeInput(e.target.value)}
             >
@@ -298,7 +298,7 @@ export default function JobList() {
           <div className="flex gap-2">
             <Button 
               onClick={handleSearch}
-              className="bg-green-600 hover:bg-green-700 text-white transition-colors duration-200"
+              className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
             >
               <Search className="h-4 w-4 mr-2" />
               Search
@@ -322,7 +322,7 @@ export default function JobList() {
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span className="font-medium">Active filters:</span>
               {search && (
-                <span className="bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs border border-green-200">
+                <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs border border-blue-200">
                   Search: "{search}"
                 </span>
               )}
@@ -349,11 +349,11 @@ export default function JobList() {
       {/* Recommendations Section */}
       {search === "" && recommendedJobs.length > 0 && (
         <div className="mb-8">
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-200 p-6">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-50 rounded-lg border-2 border-blue-200 p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Star className="h-5 w-5 text-green-600" />
+              <Star className="h-5 w-5 text-blue-600" />
               <h3 className="text-lg font-semibold text-gray-900">Recommended for You</h3>
-              <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
                 Based on your search history
               </span>
             </div>

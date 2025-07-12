@@ -44,7 +44,7 @@ export default function JobCard({ job }: { job: Job }) {
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors duration-200">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-200">
             {job.title}
           </h3>
           
@@ -84,7 +84,7 @@ export default function JobCard({ job }: { job: Job }) {
         <Link href={`/job/${job.id}`}>
           <Button 
             size="sm"
-            className="bg-green-600 hover:bg-green-700 text-white transition-colors duration-200"
+            className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
           >
             <Briefcase className="h-4 w-4 mr-2" />
             Apply Now

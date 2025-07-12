@@ -153,7 +153,7 @@ export default function CandidateSidebar({ isOpen, onClose }: SidebarProps) {
             onClick={() => toggleExpanded(item.name)}
             className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
               itemIsActive
-                ? 'bg-green-100 text-green-900'
+                ? 'bg-blue-100 text-blue-900'
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
@@ -183,7 +183,7 @@ export default function CandidateSidebar({ isOpen, onClose }: SidebarProps) {
             onClick={onClose}
             className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
               itemIsActive
-                ? 'bg-green-100 text-green-900'
+                ? 'bg-blue-100 text-blue-900'
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
@@ -202,7 +202,7 @@ export default function CandidateSidebar({ isOpen, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={`block px-3 py-2 text-sm rounded-lg transition-colors ${
                   isActive(subItem.href)
-                    ? 'bg-green-50 text-green-700'
+                    ? 'bg-blue-50 text-blue-700'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -249,18 +249,18 @@ export default function CandidateSidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-200">
-          <div className="bg-green-50 rounded-lg p-3">
-            <h4 className="text-sm font-medium text-green-900">Profile Completion</h4>
+          <div className="bg-blue-50 rounded-lg p-3">
+            <h4 className="text-sm font-medium text-blue-900">Profile Completion</h4>
             <div className="mt-2">
-              <div className="flex items-center justify-between text-xs text-green-700">
+              <div className="flex items-center justify-between text-xs text-blue-700">
                 <span>85% Complete</span>
                 <span>85%</span>
               </div>
-              <div className="mt-1 h-2 bg-green-200 rounded-full">
-                <div className="h-2 bg-green-600 rounded-full" style={{ width: '85%' }}></div>
+              <div className="mt-1 h-2 bg-blue-200 rounded-full">
+                <div className="h-2 bg-blue-600 rounded-full" style={{ width: '85%' }}></div>
               </div>
             </div>
-            <p className="text-xs text-green-700 mt-2">
+            <p className="text-xs text-blue-700 mt-2">
               Complete your profile to get better job matches
             </p>
           </div>

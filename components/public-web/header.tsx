@@ -16,7 +16,7 @@ export default function Header() {
       <div className="flex items-center justify-between px-6 py-4">
         {/* Left side - Logo */}
         <div className="flex items-center space-x-3">
-          <div className="h-10 w-10 bg-green-600 rounded-lg flex items-center justify-center">
+          <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">FF</span>
           </div>
           <span className="text-2xl font-bold text-gray-900">FutureFit</span>
@@ -28,7 +28,7 @@ export default function Header() {
           <Button 
             onClick={() => router.push('/login')}
             variant="outline"
-            className="border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-700 transition-colors duration-200"
+            className="border-blue-600 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700 transition-colors duration-200"
           >
             Login
           </Button>
@@ -38,7 +38,7 @@ export default function Header() {
             <Button
               variant="ghost"
               onClick={() => setShowRegisterMenu(!showRegisterMenu)}
-              className="flex items-center space-x-2 text-gray-700 hover:text-green-600 hover:bg-green-50 transition-colors duration-200"
+              className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200"
             >
               <span>Register</span>
               <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showRegisterMenu ? 'rotate-180' : ''}`} />
@@ -50,28 +50,28 @@ export default function Header() {
                 <div className="py-1">
                   <Link 
                     href="/register/candidate"
-                    className="flex flex-col px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200"
+                    className="flex flex-col px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
                   >
                     <span className="font-medium">Candidate</span>
                     <span className="text-xs text-gray-500 mt-1">Find your dream job</span>
                   </Link>
                   <Link 
                     href="/register/employer"
-                    className="flex flex-col px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200"
+                    className="flex flex-col px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
                   >
                     <span className="font-medium">Employer</span>
                     <span className="text-xs text-gray-500 mt-1">Hire top talent</span>
                   </Link>
                   <Link 
                     href="/register/mis"
-                    className="flex flex-col px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200"
+                    className="flex flex-col px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
                   >
                     <span className="font-medium">MIS</span>
                     <span className="text-xs text-gray-500 mt-1">Management system</span>
                   </Link>
                   <Link 
                     href="/register/agency"
-                    className="flex flex-col px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200"
+                    className="flex flex-col px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
                   >
                     <span className="font-medium">Agency</span>
                     <span className="text-xs text-gray-500 mt-1">Recruitment services</span>
@@ -100,7 +100,7 @@ export default function Header() {
             <Button 
               onClick={() => router.push('/login')}
               variant="outline"
-              className="w-full border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-700 transition-colors duration-200"
+              className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700 transition-colors duration-200"
             >
               Login
             </Button>
@@ -109,28 +109,28 @@ export default function Header() {
               <div className="text-sm font-medium text-gray-900 mb-3">Register as:</div>
               <Link 
                 href="/register/candidate"
-                className="block p-3 rounded-md hover:bg-green-50 transition-colors duration-200"
+                className="block p-3 rounded-md hover:bg-blue-50 transition-colors duration-200"
               >
                 <div className="font-medium text-gray-900">Candidate</div>
                 <div className="text-sm text-gray-500">Find your dream job</div>
               </Link>
               <Link 
                 href="/register/employer"
-                className="block p-3 rounded-md hover:bg-green-50 transition-colors duration-200"
+                className="block p-3 rounded-md hover:bg-blue-50 transition-colors duration-200"
               >
                 <div className="font-medium text-gray-900">Employer</div>
                 <div className="text-sm text-gray-500">Hire top talent</div>
               </Link>
               <Link 
                 href="/register/mis"
-                className="block p-3 rounded-md hover:bg-green-50 transition-colors duration-200"
+                className="block p-3 rounded-md hover:bg-blue-50 transition-colors duration-200"
               >
                 <div className="font-medium text-gray-900">MIS</div>
                 <div className="text-sm text-gray-500">Management system</div>
               </Link>
               <Link 
                 href="/register/agency"
-                className="block p-3 rounded-md hover:bg-green-50 transition-colors duration-200"
+                className="block p-3 rounded-md hover:bg-blue-50 transition-colors duration-200"
               >
                 <div className="font-medium text-gray-900">Agency</div>
                 <div className="text-sm text-gray-500">Recruitment services</div>

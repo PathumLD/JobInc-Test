@@ -42,7 +42,7 @@ export default function CandidateHeader({ onMenuClick, userName, role, onLogout 
           
           {/* FutureFit Logo */}
           <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 bg-green-600 rounded-lg flex items-center justify-center">
+            <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">FF</span>
             </div>
             <span className="text-2xl font-bold text-gray-900">FutureFit</span>
@@ -81,8 +81,8 @@ export default function CandidateHeader({ onMenuClick, userName, role, onLogout 
               className="flex items-center space-x-2"
             >
               <Avatar className="h-8 w-8">
-                <div className="h-full w-full bg-green-100 flex items-center justify-center">
-                  <User className="h-4 w-4 text-green-600" />
+                <div className="h-full w-full bg-blue-100 flex items-center justify-center">
+                  <User className="h-4 w-4 text-blue-600" />
                 </div>
               </Avatar>
               <div className="hidden md:block text-left">
