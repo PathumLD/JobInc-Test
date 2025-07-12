@@ -23,13 +23,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
 
+    // Check if candidate has a profile (for candidates only)
+    let hasProfile = false;
+    let isFirstLogin = user.is_first_login || false;
+
+    if (user.role === 'candidate') {
+      const candidateProfile = await prisma.candidate.findUnique({
+        where: { user_id: user.id },
+        select: { user_id: true }
+      });
+      hasProfile = !!candidateProfile;
+
+      // If this is first login, update the user record
+      if (isFirstLogin) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { is_first_login: false }
+        });
+      }
+    }
+
     // Create JWT
     if (!process.env.JWT_SECRET) {
       return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
     }
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role,
+        name: user.name || user.email.split('@')[0] // Include name in token
+      },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
@@ -37,7 +62,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       message: 'Login successful',
       token,
-      user: { id: user.id, email: user.email , role: user.role, status: user.status },
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        name: user.name,
+        role: user.role, 
+        status: user.status,
+        isFirstLogin: isFirstLogin && user.role === 'candidate',
+        hasProfile: hasProfile
+      },
     });
   } catch (error) {
     console.error('Login error:', error);

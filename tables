@@ -579,3 +579,8 @@ CREATE INDEX idx_system_settings_category ON system_settings(category);
 CREATE INDEX idx_candidates_experience_location ON candidates(experience_level, location);
 CREATE INDEX idx_jobs_status_published ON jobs(status, published_at);
 CREATE INDEX idx_applications_status_score
+
+
+
+
+

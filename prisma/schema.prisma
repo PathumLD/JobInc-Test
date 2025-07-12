@@ -732,6 +732,23 @@ model JobSkill {
   @@map("job_skill")
 }
 
+model JobView {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id       String   @db.Uuid
+  user_id      String?  @db.Uuid
+  ip_address   String?  @db.VarChar(45)
+  user_agent   String?
+  referrer_url String?
+  viewed_at    DateTime @default(now())
+  job          Job      @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  user         User?    @relation("UserJobViews", fields: [user_id], references: [id])
+
+  @@index([job_id])
+  @@index([user_id])
+  @@index([viewed_at])
+  @@map("job_view")
+}
+
 model Application {
   id                     String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   job_id                 String            @db.Uuid
@@ -766,23 +783,6 @@ model Application {
   @@index([overall_fit_score])
   @@index([applied_at])
   @@map("application")
-}
-
-model JobView {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  job_id       String   @db.Uuid
-  user_id      String?  @db.Uuid
-  ip_address   String?  @db.VarChar(45)
-  user_agent   String?
-  referrer_url String?
-  viewed_at    DateTime @default(now())
-  job          Job      @relation(fields: [job_id], references: [id], onDelete: Cascade)
-  user         User?    @relation("UserJobViews", fields: [user_id], references: [id])
-
-  @@index([job_id])
-  @@index([user_id])
-  @@index([viewed_at])
-  @@map("job_view")
 }
 
 model Interview {

@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import JobCard, { Job } from "./job-card";
 import Fuse from "fuse.js";
+import { Search, Filter, RotateCcw, Star, Briefcase } from "lucide-react";
 
-// ...mockJobs array as in your code...
 const mockJobs: Job[] = [
-   {
+  {
     id: 1,
     title: "Frontend Developer",
     company: "TechNova",
@@ -201,6 +201,13 @@ export default function JobList() {
     }
   };
 
+  // Handle Enter key press for search
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   // Fuse.js for fuzzy search
   const fuse = new Fuse(mockJobs, {
     keys: ['title', 'company', 'location', 'description', 'type'],
@@ -239,49 +246,153 @@ export default function JobList() {
     setTypeFilter("");
   };
 
+  const hasActiveFilters = search || typeFilter;
+  const totalResults = filteredJobs.length;
+
   return (
     <section className="mt-8">
-      {/* Search and Filters */}
-      <div className="flex flex-wrap gap-4 mb-6 items-end">
-        <Input
-          placeholder="Search jobs..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          className="w-1/4"
-        />
-        <select
-          className="border rounded p-2"
-          value={typeInput}
-          onChange={(e) => setTypeInput(e.target.value)}
-        >
-          <option value="">All Types</option>
-          <option value="Full-time">Full-time</option>
-          <option value="Part-time">Part-time</option>
-        </select>
-        <Button onClick={handleSearch}>Search</Button>
-        <Button variant="outline" onClick={resetFilters}>Reset Filters</Button>
+      {/* Search and Filters Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="h-5 w-5 text-gray-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Find Your Perfect Job</h2>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 items-end">
+          {/* Search Input */}
+          <div className="flex-1 min-w-0">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Search Jobs
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Job title, company, or keywords..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="pl-10 border-gray-300 focus:border-green-500 focus:ring-green-500"
+              />
+            </div>
+          </div>
+
+          {/* Job Type Filter */}
+          <div className="min-w-0">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Job Type
+            </label>
+            <select
+              className="h-10 px-3 border border-gray-300 rounded-md focus:border-green-500 focus:ring-green-500 bg-white text-sm min-w-[140px]"
+              value={typeInput}
+              onChange={(e) => setTypeInput(e.target.value)}
+            >
+              <option value="">All Types</option>
+              <option value="Full-time">Full-time</option>
+              <option value="Part-time">Part-time</option>
+              <option value="Contract">Contract</option>
+              <option value="Remote">Remote</option>
+            </select>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleSearch}
+              className="bg-green-600 hover:bg-green-700 text-white transition-colors duration-200"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+            {hasActiveFilters && (
+              <Button 
+                variant="outline" 
+                onClick={resetFilters}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Active Filters Display */}
+        {hasActiveFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="font-medium">Active filters:</span>
+              {search && (
+                <span className="bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs border border-green-200">
+                  Search: "{search}"
+                </span>
+              )}
+              {typeFilter && (
+                <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs border border-blue-200">
+                  Type: {typeFilter}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Recommendations: only show if not searching */}
+      {/* Results Summary */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2 text-gray-600">
+          <Briefcase className="h-5 w-5" />
+          <span className="font-medium">
+            {hasActiveFilters ? `${totalResults} jobs found` : `${mockJobs.length} total jobs`}
+          </span>
+        </div>
+      </div>
+
+      {/* Recommendations Section */}
       {search === "" && recommendedJobs.length > 0 && (
-        <div className="mb-6 border-2 border-gray-300 rounded-lg p-4">
-          <h3 className="font-bold mb-2">Recommended for you</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendedJobs.map((job) => (
-              <JobCard key={job.id} job={job} />
-            ))}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-200 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Star className="h-5 w-5 text-green-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Recommended for You</h3>
+              <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                Based on your search history
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendedJobs.slice(0, 6).map((job) => (
+                <JobCard key={`rec-${job.id}`} job={job} />
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* All Jobs (filtered or searched) */}
+      {/* All Jobs Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredJobs.length === 0 && (
-          <div className="col-span-full text-center text-gray-500">No jobs found.</div>
+        {filteredJobs.length === 0 ? (
+          <div className="col-span-full">
+            <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+              <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
+              <p className="text-gray-500 mb-4">
+                Try adjusting your search criteria or clearing filters
+              </p>
+              {hasActiveFilters && (
+                <Button 
+                  variant="outline" 
+                  onClick={resetFilters}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          filteredJobs.map((job) => (
+            <JobCard key={job.id} job={job} />
+          ))
         )}
-        {filteredJobs.map((job) => (
-          <JobCard key={job.id} job={job} />
-        ))}
       </div>
     </section>
   );
