@@ -584,3 +584,867 @@ CREATE INDEX idx_applications_status_score
 
 
 
+
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserType {
+  candidate
+  employer
+  admin
+  mis
+  recruitment_agency
+}
+
+enum UserStatus {
+  active
+  inactive
+  suspended
+  pending_verification
+}
+
+enum RemotePreference {
+  remote_only
+  hybrid
+  onsite
+  flexible
+}
+
+enum ExperienceLevel {
+  entry
+  junior
+  mid
+  senior
+  lead
+  principal
+}
+
+enum AvailabilityStatus {
+  available
+  open_to_opportunities
+  not_looking
+}
+
+enum Gender {
+  male
+  female
+  other
+  prefer_not_to_say
+}
+
+enum PhoneType {
+  mobile
+  home
+  work
+  other
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  contract
+  internship
+  freelance
+  volunteer
+}
+
+enum LanguageProficiency {
+  native
+  fluent
+  professional
+  conversational
+  basic
+}
+
+enum CompanySize {
+  startup
+  one_to_ten
+  eleven_to_fifty
+  fifty_one_to_two_hundred
+  two_hundred_one_to_five_hundred
+  five_hundred_one_to_one_thousand
+  one_thousand_plus
+}
+
+enum CompanyType {
+  startup
+  corporation
+  agency
+  non_profit
+  government
+}
+
+enum VerificationStatus {
+  pending
+  verified
+  rejected
+}
+
+enum JobType {
+  full_time
+  part_time
+  contract
+  internship
+  freelance
+}
+
+enum JobStatus {
+  draft
+  published
+  paused
+  closed
+  archived
+}
+
+enum SalaryType {
+  annual
+  monthly
+  weekly
+  daily
+  hourly
+}
+
+enum CreatorType {
+  employer
+  mis_user
+}
+
+enum AccessLevel {
+  read_only
+  analyst
+  admin
+  super_admin
+}
+
+enum RequiredLevel {
+  nice_to_have
+  preferred
+  required
+  must_have
+}
+
+enum ProficiencyLevel {
+  beginner
+  intermediate
+  advanced
+  expert
+}
+
+enum ApplicationStatus {
+  pending
+  screening
+  ai_assessment
+  interview
+  technical_test
+  final_review
+  offered
+  accepted
+  rejected
+  withdrawn
+}
+
+enum EmployerRole {
+  recruiter
+  hiring_manager
+  hr_admin
+  company_admin
+}
+
+enum AgencyRole {
+  recruiter
+  account_manager
+  agency_admin
+}
+
+enum RemoteType {
+  remote
+  hybrid
+  onsite
+}
+
+enum InterviewType {
+  phone_screening
+  video_call
+  ai_video
+  technical
+  behavioral
+  final
+}
+
+enum InterviewStatus {
+  scheduled
+  in_progress
+  completed
+  cancelled
+  no_show
+}
+
+enum Recommendation {
+  strong_hire
+  hire
+  maybe
+  no_hire
+  strong_no_hire
+}
+
+enum SalaryVisibility {
+  confidential
+  range_only
+  exact
+  negotiable
+}
+
+enum WorkAuthorization {
+  citizen
+  permanent_resident
+  work_visa
+  requires_sponsorship
+  other
+}
+
+enum PreferredShift {
+  day
+  evening
+  night
+  rotating
+  flexible
+}
+
+enum WorkAvailability {
+  full_time
+  part_time
+  contract
+  freelance
+  internship
+  volunteer
+}
+
+enum VerificationMethod {
+  manual
+  automated
+  third_party
+  document_upload
+}
+
+enum SkillCategory {
+  programming
+  framework
+  database
+  devops
+  design
+  analytics
+  marketing
+  management
+  language
+  other
+}
+
+enum RemoteWorkPreference {
+  remote_only
+  hybrid
+  onsite
+  flexible
+  none
+}
+
+model User {
+  id                        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                     String             @unique @db.VarChar(255)
+  password                  String?            @db.VarChar(255)
+  role                      UserType?
+  status                    UserStatus?        @default(pending_verification)
+  email_verified            Boolean?           @default(false)
+  email_verification_token  String?            @db.VarChar(255)
+  password_reset_token      String?            @db.VarChar(255)
+  password_reset_expires_at DateTime?
+  last_login_at             DateTime?
+  created_at                DateTime?          @default(now())
+  updated_at                DateTime?          @updatedAt
+  deleted_at                DateTime?
+  candidate                 Candidate?
+  employer                  Employer?
+  conductedInterviews       Interview[]        @relation("UserConductedInterviews")
+  viewedJobs                JobView[]          @relation("UserJobViews")
+  mis_user                  MisUser?
+  recruitment_agency        RecruitmentAgency?
+
+  @@map("user")
+}
+
+model Candidate {
+  user_id                       String             @id @db.Uuid
+  first_name                    String?            @db.VarChar(100)
+  last_name                     String?            @db.VarChar(100)
+  additional_name               String?            @db.VarChar(100)
+  gender                        Gender?
+  date_of_birth                 DateTime?          @db.Date
+  title                         String?            @db.VarChar(200)
+  current_position              String?            @db.VarChar(200)
+  industry                      String?            @db.VarChar(100)
+  bio                           String?
+  about                         String?
+  country                       String?            @db.VarChar(100)
+  city                          String?            @db.VarChar(100)
+  location                      String?            @db.VarChar(200)
+  address                       String?
+  phone1                        String?            @db.VarChar(20)
+  phone2                        String?
+  personal_website              String?
+  nic                           String?            @db.VarChar(50)
+  passport                      String?            @db.VarChar(50)
+  remote_preference             RemotePreference?  @default(flexible)
+  experience_level              ExperienceLevel?   @default(entry)
+  years_of_experience           Int?               @default(0)
+  expected_salary_min           Float?             @default(0)
+  expected_salary_max           Float?             @default(0)
+  currency                      String?            @default("USD") @db.VarChar(4)
+  profile_image_url             String?
+  availability_status           AvailabilityStatus? @default(available)
+  availability_date             DateTime?          @db.Date
+  resume_url                    String?
+  portfolio_url                 String?
+  github_url                    String?
+  linkedin_url                  String?
+  professional_summary          String?            @db.Text
+  total_years_experience        Float?             @default(0.0)
+  open_to_relocation            Boolean?           @default(false)
+  willing_to_travel             Boolean?           @default(false)
+  security_clearance            Boolean?           @default(false)
+  disability_status             String?            @db.VarChar(100)
+  veteran_status                String?            @db.VarChar(100)
+  pronouns                      String?            @db.VarChar(50)
+  salary_visibility             SalaryVisibility?  @default(confidential)
+  notice_period                 Int?               @default(30)
+  work_authorization            WorkAuthorization? 
+  visa_assistance_needed        Boolean?           @default(false)
+  work_availability             WorkAvailability?  @default(full_time)
+  ai_collaboration_score        Float?             @default(0.0)
+  prompting_skill_score         Float?             @default(0.0)
+  workflow_automation_score     Float?             @default(0.0)
+  overall_ai_readiness_score    Float?             @default(0.0)
+  interview_ready               Boolean?           @default(false)
+  pre_qualified                 Boolean?           @default(false)
+  profile_completion_percentage Int?               @default(0)
+  created_at                    DateTime?          @default(now())
+  updated_at                    DateTime?          @updatedAt
+  
+  // Relationships
+  accomplishments               Accomplishment[]
+  applications                  Application[]
+  awards                        Award[]
+  projects                      Project[]
+  user                          User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  skills                        CandidateSkill[]
+  educations                    Education[]
+  languages                     Language[]
+  resumes                       Resume[]
+  volunteering                  Volunteering[]
+  work_experiences              WorkExperience[]
+  certificates                  Certificate[]
+
+  @@index([experience_level])
+  @@index([availability_status])
+  @@index([overall_ai_readiness_score])
+  @@index([country, city])
+  @@index([industry])
+  @@map("candidate")
+}
+
+model WorkExperience {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id    String           @db.Uuid
+  title           String?          @db.VarChar(200)
+  employment_type EmploymentType?  @default(full_time)
+  is_current      Boolean?         @default(false)
+  company         String?          @db.VarChar(200)
+  start_date      DateTime?        @db.Date
+  end_date        DateTime?        @db.Date
+  location        String?          @db.VarChar(200)
+  description     String?
+  job_source      String?          @db.VarChar(100)
+  skill_ids       String[]         @db.Uuid
+  media_url       String?
+  created_at      DateTime?        @default(now())
+  updated_at      DateTime?        @updatedAt
+  accomplishments Accomplishment[]
+  candidate       Candidate        @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+
+  @@index([candidate_id])
+  @@index([is_current])
+  @@map("work_experience")
+}
+
+model Accomplishment {
+  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id       String          @db.Uuid
+  work_experience_id String?         @db.Uuid
+  resume_id          String?         @db.Uuid
+  title              String?         @db.VarChar(300)
+  description        String?
+  created_at         DateTime?       @default(now())
+  updated_at         DateTime?       @updatedAt
+  candidate          Candidate       @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+  resume             Resume?         @relation(fields: [resume_id], references: [id])
+  work_experience    WorkExperience? @relation(fields: [work_experience_id], references: [id])
+
+  @@index([candidate_id])
+  @@index([work_experience_id])
+  @@index([resume_id])
+  @@map("accomplishment")
+}
+
+model Education {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id         String    @db.Uuid
+  degree_diploma       String?   @db.VarChar(100)
+  university_school    String?   @db.VarChar(100)
+  field_of_study       String?   @db.VarChar(100)
+  description          String?   
+  start_date           DateTime? @db.Date
+  end_date             DateTime? @db.Date
+  grade                String?   @db.VarChar(50)
+  activities_societies String?
+  skill_ids            String[]  @db.Uuid
+  media_url            String?
+  created_at           DateTime? @default(now())
+  updated_at           DateTime? @updatedAt
+  candidate            Candidate @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+
+  @@index([candidate_id])
+  @@map("education")
+}
+
+model Skill {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String           @unique @db.VarChar(100)
+  category         String?          @db.VarChar(50)
+  description      String?
+  is_active        Boolean?         @default(true)
+  created_at       DateTime?        @default(now())
+  updated_at       DateTime?        @updatedAt
+  candidate_skills CandidateSkill[]
+  job_skills       JobSkill[]
+
+  @@index([name])
+  @@index([category])
+  @@map("skill")
+}
+
+model CandidateSkill {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id        String    @db.Uuid
+  skill_id            String    @db.Uuid
+  skill_source        String?   @db.VarChar(50)
+  proficiency         Int?      @default(50)
+  years_of_experience Float?    @default(0)
+  source_title        String?   @db.VarChar(200)
+  source_company      String?   @db.VarChar(200)
+  source_institution  String?   @db.VarChar(200)
+  source_authority    String?   @db.VarChar(200)
+  source_type         String?   @db.VarChar(50)
+  created_at          DateTime? @default(now())
+  updated_at          DateTime? @updatedAt
+  candidate           Candidate @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+  skill               Skill     @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@unique([candidate_id, skill_id])
+  @@index([candidate_id])
+  @@index([skill_id])
+  @@index([skill_source])
+  @@map("candidate_skill")
+}
+
+model Language {
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id        String               @db.Uuid
+  language            String?              @db.VarChar(100)
+  is_native           Boolean?             @default(false)
+  oral_proficiency    LanguageProficiency?
+  written_proficiency LanguageProficiency?
+  created_at          DateTime?            @default(now())
+  updated_at          DateTime?            @updatedAt
+  candidate           Candidate            @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+
+  @@index([candidate_id])
+  @@map("language")
+}
+
+model Award {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id    String    @db.Uuid
+  title           String?   @db.VarChar(200)
+  associated_with String?   @db.VarChar(200)
+  offered_by      String?   @db.VarChar(200)
+  date            DateTime? @db.Date
+  description     String?
+  media_url       String?
+  skill_ids       String[]  @db.Uuid
+  created_at      DateTime? @default(now())
+  updated_at      DateTime? @updatedAt
+  candidate       Candidate @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+
+  @@index([candidate_id])
+  @@map("award")
+}
+
+model Project {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id          String              @db.Uuid
+  name                  String?             @db.VarChar(200)
+  description           String?
+  start_date            DateTime?           @db.Date
+  end_date              DateTime?           @db.Date
+  is_current            Boolean?            @default(false)
+  role                  String?             @db.VarChar(100)
+  responsibilities      String[]
+  technologies          String[]            @db.VarChar(100)
+  tools                 String[]            @db.VarChar(100)
+  methodologies         String[]            @db.VarChar(100)
+  is_confidential       Boolean?            @default(false)
+  can_share_details     Boolean?            @default(false)
+  url                   String?
+  repository_url        String?
+  media_urls            String[]
+  skills_gained         String[]            @db.VarChar(100)
+  created_at            DateTime?           @default(now())
+  updated_at            DateTime?           @updatedAt
+  candidate             Candidate           @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+
+  @@index([candidate_id])
+  @@map("project")
+}
+
+model Volunteering {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id String    @db.Uuid
+  role         String?   @db.VarChar(200)
+  institution  String?   @db.VarChar(200)
+  cause        String?   @db.VarChar(200)
+  start_date   DateTime? @db.Date
+  end_date     DateTime? @db.Date
+  is_current   Boolean?  @default(false)
+  description  String?
+  media_url    String?
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @updatedAt
+  candidate    Candidate @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+
+  @@index([candidate_id])
+  @@map("volunteering")
+}
+
+model Certificate {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id      String    @db.Uuid
+  name              String?   @db.VarChar(200)
+  issuing_authority String?   @db.VarChar(200)
+  issue_date        DateTime? @db.Date
+  expiry_date       DateTime? @db.Date
+  credential_id     String?   @db.VarChar(100)
+  credential_url    String?
+  description       String?
+  skill_ids         String[]  @db.Uuid
+  media_url         String?
+  created_at        DateTime? @default(now())
+  updated_at        DateTime? @updatedAt
+  candidate         Candidate @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+
+  @@index([candidate_id])
+  @@index([issue_date])
+  @@map("certificate")
+}
+
+model Resume {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id     String           @db.Uuid
+  is_allow_fetch   Boolean?         @default(true)
+  resume_url       String?
+  original_filename String?         @db.VarChar(255)
+  file_size        Int?
+  file_type        String?          @db.VarChar(50)
+  is_primary       Boolean?         @default(false)
+  uploaded_at      DateTime?        @default(now())
+  created_at       DateTime?        @default(now())
+  updated_at       DateTime?        @updatedAt
+  accomplishments  Accomplishment[]
+  candidate        Candidate        @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+
+  @@index([candidate_id])
+  @@index([is_primary])
+  @@map("resume")
+}
+
+model Company {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                  String              @db.VarChar(200)
+  slug                  String              @unique @db.VarChar(200)
+  description           String?
+  website_url           String?
+  logo_url              String?
+  industry              String?             @db.VarChar(100)
+  company_size          CompanySize
+  headquarters_location String?             @db.VarChar(200)
+  founded_year          Int?
+  company_type          CompanyType         @default(corporation)
+  remote_friendly       Boolean             @default(false)
+  benefits              String?
+  culture_description   String?
+  social_media_links    Json?
+  verification_status   VerificationStatus  @default(pending)
+  verified_at           DateTime?
+  created_at            DateTime            @default(now())
+  updated_at            DateTime            @updatedAt
+  employers             Employer[]
+  jobs                  Job[]
+  mis_access            MisCompanyAccess[]
+  recruitment_agencies  RecruitmentAgency[]
+
+  @@index([slug])
+  @@index([industry])
+  @@index([company_size])
+  @@index([verification_status])
+  @@map("company")
+}
+
+model MisUser {
+  user_id                    String             @id @db.Uuid
+  access_level               AccessLevel
+  department                 String?            @db.VarChar(100)
+  reporting_to               String?            @db.Uuid
+  data_access_scopes         Json?
+  job_posting_permissions    Boolean            @default(false)
+  can_post_for_all_companies Boolean            @default(false)
+  max_active_jobs            Int                @default(5)
+  created_at                 DateTime           @default(now())
+  updated_at                 DateTime           @updatedAt
+  jobs                       Job[]
+  company_access             MisCompanyAccess[]
+  reporting                  MisUser?           @relation("MisUserHierarchy", fields: [reporting_to], references: [user_id])
+  subordinates               MisUser[]          @relation("MisUserHierarchy")
+  user                       User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([access_level])
+  @@index([job_posting_permissions])
+  @@map("mis_user")
+}
+
+model MisCompanyAccess {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mis_user_id     String   @db.Uuid
+  company_id      String   @db.Uuid
+  can_create_jobs Boolean  @default(true)
+  can_manage_jobs Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  company         Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  mis_user        MisUser  @relation(fields: [mis_user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([mis_user_id, company_id])
+  @@index([mis_user_id])
+  @@index([company_id])
+  @@map("mis_company_access")
+}
+
+model Job {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  creator_id           String          @db.Uuid
+  creator_type         CreatorType
+  title                String          @db.VarChar(200)
+  description          String
+  requirements         String?
+  responsibilities     String?
+  benefits             String?
+  job_type             JobType
+  experience_level     ExperienceLevel
+  location             String?         @db.VarChar(200)
+  remote_type          RemoteType
+  salary_min           Float?
+  salary_max           Float?
+  currency             String?         @default("USD") @db.VarChar(3)
+  salary_type          SalaryType?     @default(annual)
+  equity_offered       Boolean         @default(false)
+  ai_skills_required   Boolean         @default(false)
+  application_deadline DateTime?
+  status               JobStatus       @default(draft)
+  published_at         DateTime?
+  priority_level       Int             @default(1)
+  views_count          Int             @default(0)
+  applications_count   Int             @default(0)
+  customCompanyName    String?
+  customCompanyEmail   String?
+  customCompanyPhone   String?
+  customCompanyWebsite String?
+  created_at           DateTime        @default(now())
+  updated_at           DateTime        @updatedAt
+  company_id           String?         @db.Uuid
+  applications         Application[]
+  company              Company?        @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  creator_employer     Employer?       @relation(fields: [creator_id], references: [user_id], onDelete: Cascade, map: "jobs_creator_employer_fkey")        
+  creator_mis_user     MisUser?        @relation(fields: [creator_id], references: [user_id], onDelete: Cascade, map: "jobs_creator_mis_user_fkey")
+  skills               JobSkill[]
+  views                JobView[]
+
+  @@index([company_id])
+  @@index([creator_id, creator_type])
+  @@index([status])
+  @@index([experience_level])
+  @@index([remote_type])
+  @@index([published_at])
+  @@map("job")
+}
+
+model JobSkill {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id            String           @db.Uuid
+  skill_id          String           @db.Uuid
+  required_level    RequiredLevel
+  proficiency_level ProficiencyLevel
+  years_required    Float?
+  weight            Float            @default(1.00)
+  created_at        DateTime         @default(now())
+  job               Job              @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  skill             Skill            @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@unique([job_id, skill_id])
+  @@index([job_id])
+  @@index([skill_id])
+  @@index([required_level])
+  @@map("job_skill")
+}
+
+model JobView {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id       String   @db.Uuid
+  user_id      String?  @db.Uuid
+  ip_address   String?  @db.VarChar(45)
+  user_agent   String?
+  referrer_url String?
+  viewed_at    DateTime @default(now())
+  job          Job      @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  user         User?    @relation("UserJobViews", fields: [user_id], references: [id])
+
+  @@index([job_id])
+  @@index([user_id])
+  @@index([viewed_at])
+  @@map("job_view")
+}
+
+model Application {
+  id                     String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id                 String            @db.Uuid
+  candidate_id           String            @db.Uuid
+  status                 ApplicationStatus @default(pending)
+  applied_at             DateTime          @default(now())
+  cover_letter           String?
+  ai_match_score         Float?
+  skill_match_percentage Float?
+  experience_match_score Float?
+  ai_readiness_match     Float?
+  overall_fit_score      Float?
+  recruiter_notes        String?
+  candidate_notes        String?
+  interview_scheduled_at DateTime?
+  interview_completed_at DateTime?
+  offer_extended_at      DateTime?
+  offer_accepted_at      DateTime?
+  rejection_reason       String?
+  rejected_at            DateTime?
+  withdrawn_at           DateTime?
+  created_at             DateTime          @default(now())
+  updated_at             DateTime          @updatedAt
+  candidate              Candidate         @relation(fields: [candidate_id], references: [user_id], onDelete: Cascade)
+  job                    Job               @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  interviews             Interview[]
+
+  @@unique([job_id, candidate_id])
+  @@index([job_id])
+  @@index([candidate_id])
+  @@index([status])
+  @@index([overall_fit_score])
+  @@index([applied_at])
+  @@map("application")
+}
+
+model Interview {
+  id                        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  application_id            String          @db.Uuid
+  interviewer_id            String?         @db.Uuid
+  interview_type            InterviewType
+  status                    InterviewStatus @default(scheduled)
+  scheduled_at              DateTime
+  duration_minutes          Int             @default(60)
+  meeting_link              String?
+  meeting_id                String?         @db.VarChar(100)
+  ai_conducted              Boolean         @default(false)
+  ai_analysis               Json?
+  interview_notes           String?
+  technical_assessment_data Json?
+  behavioral_scores         Json?
+  communication_score       Float?
+  technical_score           Float?
+  cultural_fit_score        Float?
+  overall_rating            Float?
+  recommendation            Recommendation?
+  feedback_for_candidate    String?
+  recording_url             String?
+  transcript                String?
+  started_at                DateTime?
+  completed_at              DateTime?
+  created_at                DateTime        @default(now())
+  updated_at                DateTime        @updatedAt
+  application               Application     @relation(fields: [application_id], references: [id], onDelete: Cascade)
+  interviewer               User?           @relation("UserConductedInterviews", fields: [interviewer_id], references: [id])
+
+  @@index([application_id])
+  @@index([interviewer_id])
+  @@index([status])
+  @@index([scheduled_at])
+  @@index([interview_type])
+  @@map("interview")
+}
+
+model Employer {
+  user_id            String       @id @db.Uuid
+  company_id         String       @db.Uuid
+  job_title          String?      @db.VarChar(200)
+  department         String?      @db.VarChar(100)
+  role               EmployerRole
+  permissions        Json?
+  is_primary_contact Boolean      @default(false)
+  phone_extension    String?      @db.VarChar(10)
+  created_at         DateTime     @default(now())
+  updated_at         DateTime     @updatedAt
+  company            Company      @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  user               User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  jobs               Job[]
+
+  @@index([company_id])
+  @@index([role])
+  @@map("employer")
+}
+
+model RecruitmentAgency {
+  user_id         String     @id @db.Uuid
+  agency_id       String     @db.Uuid
+  role            AgencyRole
+  specialization  String?    @db.VarChar(200)
+  clients         Json?
+  commission_rate Float?
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+  agency          Company    @relation(fields: [agency_id], references: [id], onDelete: Cascade)
+  user            User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([agency_id])
+  @@index([role])
+  @@map("recruitment_agency")
+}
