@@ -148,7 +148,7 @@ export default function LoginPage() {
       } else {
         setMessage({ type: 'error', text: data.error || 'Login failed. Please check your credentials.' });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
       setIsLoading(false);
@@ -159,7 +159,7 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
     try {
       await signIn("google");
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Google sign-in failed. Please try again.' });
     } finally {
       setIsGoogleLoading(false);
@@ -421,16 +421,6 @@ export default function LoginPage() {
                 </>
               )}
             </Button>
-          </div>
-
-          {/* Footer */}
-          <div className="mt-6 pt-4 border-t border-gray-200 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200">
-                Sign up here
-              </a>
-            </p>
           </div>
         </div>
       </div>

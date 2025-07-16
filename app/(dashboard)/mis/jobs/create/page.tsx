@@ -24,7 +24,7 @@ export default function CreateJobPage() {
 
   const handleCancel = () => {
     // Navigate back to jobs list
-    router.push('/mis/jobs');
+    router.push('/mis/jobs/jobs');
   };
 
   return (

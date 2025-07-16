@@ -121,6 +121,7 @@ export default function AwardsForm({
   const handleAwardChange = (
     index: number,
     field: keyof Award,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any
   ) => {
     const updatedAwards = [...awards];

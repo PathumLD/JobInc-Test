@@ -1,8 +1,6 @@
 // lib/api/companies.ts
 
-import { CompaniesResponse, CompanyOption } from "../types/company/company";
-
-
+import { CompaniesResponse, CompanyOption } from '@/lib/types/company/company';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -26,9 +24,9 @@ function createAuthHeaders(): HeadersInit {
 }
 
 /**
- * Fetch companies that the current MIS user can create jobs for
+ * Fetch verified companies for reference purposes
  */
-export async function fetchAccessibleCompanies(): Promise<CompanyOption[]> {
+export async function fetchVerifiedCompanies(): Promise<CompanyOption[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/companies/verified`, {
       method: 'GET',

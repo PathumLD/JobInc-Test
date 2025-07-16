@@ -212,7 +212,7 @@ EXTRACTION GUIDELINES:
 export const extractJSONFromText = (text: string): any => {
   try {
     // Remove any markdown formatting
-    let cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     
     // Find JSON boundaries
     const jsonStart = cleanText.indexOf('{');

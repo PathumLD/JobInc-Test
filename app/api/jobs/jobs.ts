@@ -29,6 +29,8 @@ function createAuthHeaders(): HeadersInit {
 export async function createJob(jobData: CreateJobRequest): Promise<Job> {
   try {
     console.log('Making request to:', '/api/jobs/create');
+    console.log('Job data:', jobData);
+    
     const response = await fetch('/api/jobs/create', {
       method: 'POST',
       headers: createAuthHeaders(),
@@ -78,16 +80,20 @@ export async function createJob(jobData: CreateJobRequest): Promise<Job> {
  */
 export async function fetchMyJobs(page: number = 1, limit: number = 10) {
   try {
-    const searchParams = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString()
-    });
+    console.log('Making request to fetch jobs...');
+    
+    // const searchParams = new URLSearchParams({
+    //   page: page.toString(),
+    //   limit: limit.toString()
+    // });
 
-    const response = await fetch(`${API_BASE_URL}/api/jobs?${searchParams}`, {
+    const response = await fetch(`/api/jobs`, {
       method: 'GET',
       headers: createAuthHeaders(),
       cache: 'no-store'
     });
+
+    console.log('Response status:', response.status);
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -96,10 +102,14 @@ export async function fetchMyJobs(page: number = 1, limit: number = 10) {
       if (response.status === 403) {
         throw new Error('Insufficient permissions');
       }
+      
+      const errorText = await response.text();
+      console.error('API Error Response:', errorText);
       throw new Error(`Failed to fetch jobs: ${response.status}`);
     }
 
     const result = await response.json();
+    console.log('Jobs fetch result:', result);
 
     if (!result.success) {
       throw new Error(result.error || 'Failed to fetch jobs');
@@ -116,41 +126,92 @@ export async function fetchMyJobs(page: number = 1, limit: number = 10) {
 }
 
 /**
- * Get job by ID
+ * Get job by ID with better error handling
  */
 export async function fetchJobById(jobId: string): Promise<Job> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
+    console.log('=== FETCHING JOB BY ID ===');
+    console.log('Job ID:', jobId);
+    
+    // Validate job ID
+    if (!jobId || typeof jobId !== 'string' || jobId.trim() === '') {
+      throw new Error('Invalid job ID provided');
+    }
+
+    const response = await fetch(`/api/jobs/${jobId.trim()}`, {
       method: 'GET',
       headers: createAuthHeaders(),
       cache: 'no-store'
     });
 
+    console.log('Job fetch response status:', response.status);
+    console.log('Job fetch response headers:', Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Authentication required');
+      let errorMessage = `HTTP ${response.status}`;
+      
+      try {
+        const errorData = await response.json();
+        console.log('Job fetch error data:', errorData);
+        
+        if (response.status === 401) {
+          throw new Error('Authentication required. Please log in again.');
+        }
+        if (response.status === 403) {
+          throw new Error('Access denied. You can only view jobs you created.');
+        }
+        if (response.status === 404) {
+          throw new Error('Job not found. It may have been deleted.');
+        }
+        
+        // Use the error message from the server if available
+        errorMessage = errorData.message || errorData.error || errorMessage;
+        
+        // In development, include debug info
+        if (process.env.NODE_ENV === 'development' && errorData.debug) {
+          console.error('Debug info:', errorData.debug);
+        }
+        
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError);
+        // Use the status-based error message
       }
-      if (response.status === 403) {
-        throw new Error('Insufficient permissions');
-      }
-      if (response.status === 404) {
-        throw new Error('Job not found');
-      }
-      throw new Error(`Failed to fetch job: ${response.status}`);
+      
+      throw new Error(errorMessage);
     }
 
     const result = await response.json();
+    console.log('Job fetch result keys:', Object.keys(result));
 
-    if (!result.success || !result.data) {
-      throw new Error(result.error || 'Failed to fetch job');
+    if (!result.success) {
+      const errorMsg = result.error || result.message || 'Failed to fetch job';
+      console.error('API returned error:', errorMsg);
+      throw new Error(errorMsg);
     }
 
+    if (!result.data) {
+      console.error('No job data in response:', result);
+      throw new Error('No job data received from server');
+    }
+
+    console.log('✅ Job fetched successfully:', result.data.title);
     return result.data;
+
   } catch (error) {
-    console.error('Error fetching job by ID:', error);
+    console.error('❌ Error fetching job by ID:', error);
+    
+    // Re-throw known errors
     if (error instanceof Error) {
+      // Check for network errors
+      if (error.message.includes('fetch')) {
+        throw new Error('Network error. Please check your connection and try again.');
+      }
+      
+      // Re-throw with original message
       throw error;
     }
+    
+    // Fallback error
     throw new Error('An unexpected error occurred while fetching the job');
   }
 }
@@ -160,7 +221,7 @@ export async function fetchJobById(jobId: string): Promise<Job> {
  */
 export async function updateJobStatus(jobId: string, status: JobStatus): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}/status`, {
+    const response = await fetch(`/api/jobs/${jobId}/status`, {
       method: 'PATCH',
       headers: createAuthHeaders(),
       body: JSON.stringify({ status })
@@ -195,7 +256,7 @@ export async function updateJobStatus(jobId: string, status: JobStatus): Promise
  */
 export async function fetchSkills() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/skills`, {
+    const response = await fetch(`/api/skills`, {
       method: 'GET',
       headers: createAuthHeaders(),
       cache: 'force-cache' // Skills don't change frequently

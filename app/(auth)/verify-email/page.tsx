@@ -135,7 +135,7 @@ export default function VerifyEmailPage() {
           text: data.error || 'Verification failed. Please check your code and try again.' 
         });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
       setIsLoading(false);
@@ -164,7 +164,7 @@ export default function VerifyEmailPage() {
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to resend code' });
       }
-    } catch (error) {
+    } catch  {
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
       setIsResending(false);
@@ -196,7 +196,7 @@ export default function VerifyEmailPage() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h2>
           <p className="text-gray-600 text-sm">
-            We've sent a 6-digit verification code to
+            We&#39;ve sent a 6-digit verification code to
           </p>
           <p className="font-medium text-gray-900 mt-1">
             {email ? maskEmail(email) : 'your email address'}
@@ -243,7 +243,7 @@ export default function VerifyEmailPage() {
               {otp.map((digit, index) => (
                 <Input
                   key={index}
-                  ref={el => inputRefs.current[index] = el}
+                  ref={el => { inputRefs.current[index] = el; }}
                   type={showOtp ? 'text' : 'password'}
                   maxLength={1}
                   value={digit}
@@ -290,7 +290,7 @@ export default function VerifyEmailPage() {
           {/* Resend Code */}
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-2">
-              Didn't receive the code?
+              Didn&#39;t receive the code?
             </p>
             <Button
               type="button"

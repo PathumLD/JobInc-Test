@@ -157,7 +157,7 @@ interface CompleteProfileData {
 
 // Helper function to calculate profile completion percentage
 function calculateProfileCompletion(data: any): number {
-  let totalSections = 10; // Total possible sections
+  const totalSections = 10; // Total possible sections
   let completedSections = 0;
   
   // Check each section for completeness

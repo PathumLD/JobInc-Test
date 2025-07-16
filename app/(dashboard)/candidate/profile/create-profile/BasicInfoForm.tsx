@@ -7,8 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-//import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-//import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Loader2, User, Globe, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import type { UnifiedProfileData, CVDocument } from '@/lib/data-transformer';
@@ -31,7 +29,6 @@ export default function BasicInfoForm({
     handleSubmit,
     formState: { errors },
     watch,
-    setValue,
     getValues,
   } = useFormContext<UnifiedProfileData>();
 
@@ -41,12 +38,10 @@ export default function BasicInfoForm({
   const cvDocuments = watch('cv_documents') || [];
   const cvProcessingStatus = watch('cv_processing_status') || 'none';
   const cvExtractionCompleted = watch('cv_extraction_completed') || false;
-  const uploadedCvIds = watch('uploaded_cv_ids') || [];
 
   // Watch all form fields to track changes
   const firstName = watch('first_name');
   const lastName = watch('last_name');
-  const email = watch('email');
   const phone1 = watch('phone1');
   const phone2 = watch('phone2');
   const location = watch('location');
@@ -71,7 +66,7 @@ export default function BasicInfoForm({
         console.log('📊 Found existing form data:', {
           hasBasicInfo: !!(existingData.first_name && existingData.last_name),
           hasCvDocuments: (existingData.cv_documents || []).length > 0,
-          cvProcessingStatus: existingData.cv_processing_status || 'none',
+          cvProcessingStatus: (existingData as any).cv_processing_status || 'none',
           cvExtractionCompleted: existingData.cv_extraction_completed || false
         });
       }
@@ -120,7 +115,7 @@ export default function BasicInfoForm({
       }
     };
 
-    const config = statusConfig[cvProcessingStatus as keyof typeof statusConfig] || statusConfig.none;
+    const config = statusConfig[(cvProcessingStatus as unknown) as keyof typeof statusConfig] || statusConfig.none;
     const Icon = config.icon;
 
     return (
@@ -251,20 +246,6 @@ export default function BasicInfoForm({
                 <p className="text-xs text-blue-600 mt-1">✓ Auto-filled from CV</p>
               )}
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              {...register('email')}
-              placeholder="Enter your email address"
-              className={email ? 'bg-blue-50' : ''}
-            />
-            {email && cvExtractionCompleted && (
-              <p className="text-xs text-blue-600 mt-1">✓ Auto-filled from CV</p>
-            )}
           </div>
 
           <div>
@@ -489,8 +470,8 @@ export default function BasicInfoForm({
                         )}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">
-                        Size: {formatFileSize(doc.file_size)} • 
-                        Uploaded: {new Date(doc.uploaded_at).toLocaleString()}
+                        Size: {formatFileSize(doc.file_size ?? 0)} • 
+                        Uploaded: {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleString() : 'Unknown'}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         Status: {cvProcessingStatus === 'completed' ? 'Data extracted' : 

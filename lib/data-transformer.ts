@@ -36,6 +36,12 @@ export interface UnifiedProfileData {
   
   // CV Documents
   cv_documents?: CVDocument[] | null;
+  cv_extraction_completed?: boolean;
+  cv_processing_status?: 'none' | 'completed' | 'failed';
+  uploaded_cv_ids?: string[]; // IDs of CVs uploaded by the user
+  file_size?: number; // Total size of all CVs uploaded
+  file_type?: string; // Type of the CV file (e.g., PDF, DOC
+  uploaded_at?: string;
 }
 
 export interface WorkExperienceData {

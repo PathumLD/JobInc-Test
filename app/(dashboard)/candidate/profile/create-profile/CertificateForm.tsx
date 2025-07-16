@@ -252,7 +252,7 @@ export default function CertificateForm({
                   className="mt-1"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Leave empty if certificate doesn't expire
+                  Leave empty if certificate doesn&#39;t expire
                 </p>
               </div>
 

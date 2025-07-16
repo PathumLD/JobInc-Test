@@ -20,9 +20,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
-  Users,
   Briefcase,
-  TrendingUp,
   Shield,
   Zap,
   Globe
@@ -182,7 +180,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
       } else {
         setMessage({ type: 'error', text: result.error || 'Registration failed' });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
       setIsLoading(false);
@@ -461,7 +459,7 @@ export default function RegisterPage({ role = 'employee' }: { role?: string }) {
                     ) : (
                       <>
                         <AlertCircle className="h-3 w-3 text-red-600" />
-                        <span className="text-red-600">Passwords don't match</span>
+                        <span className="text-red-600">Passwords don&#39;t match</span>
                       </>
                     )}
                   </div>

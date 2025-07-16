@@ -275,10 +275,17 @@ export async function createJob(data: CreateJobData, creatorId: string): Promise
 }
 
 /**
- * Get job by ID
+ * Get job by ID with better error handling
  */
 export async function getJobById(jobId: string): Promise<Job | null> {
   try {
+    console.log(`=== FETCHING JOB BY ID: ${jobId} ===`);
+
+    if (!jobId || typeof jobId !== 'string') {
+      console.log('❌ Invalid job ID provided');
+      return null;
+    }
+
     const job = await prisma.job.findUnique({
       where: { id: jobId },
       include: {
@@ -288,7 +295,8 @@ export async function getJobById(jobId: string): Promise<Job | null> {
             name: true,
             slug: true,
             logo_url: true,
-            industry: true
+            industry: true,
+            website_url: true
           }
         },
         skills: {
@@ -300,14 +308,26 @@ export async function getJobById(jobId: string): Promise<Job | null> {
                 category: true
               }
             }
+          },
+          orderBy: {
+            weight: 'desc'
           }
         }
       }
     });
 
-    if (!job) return null;
+    if (!job) {
+      console.log(`❌ Job not found with ID: ${jobId}`);
+      return null;
+    }
 
-    return {
+    console.log(`✅ Job found: ${job.title}`);
+    console.log(`Job creator: ${job.creator_id}`);
+    console.log(`Job type: ${job.creator_type}`);
+    console.log(`Skills count: ${job.skills?.length || 0}`);
+
+    // Transform the result to match our Job interface
+    const transformedJob: Job = {
       id: job.id,
       creator_id: job.creator_id,
       creator_type: job.creator_type as CreatorType,
@@ -339,7 +359,14 @@ export async function getJobById(jobId: string): Promise<Job | null> {
       customCompanyWebsite: job.customCompanyWebsite || undefined,
       created_at: job.created_at.toISOString(),
       updated_at: job.updated_at.toISOString(),
-      company: job.company || undefined,
+      company: job.company ? {
+        id: job.company.id,
+        name: job.company.name,
+        slug: job.company.slug,
+        logo_url: job.company.logo_url,
+        industry: job.company.industry,
+        website_url: job.company.website_url
+      } : undefined,
       skills: job.skills?.map(jobSkill => ({
         id: jobSkill.id,
         job_id: jobSkill.job_id,
@@ -348,12 +375,37 @@ export async function getJobById(jobId: string): Promise<Job | null> {
         proficiency_level: jobSkill.proficiency_level as any,
         years_required: jobSkill.years_required || undefined,
         weight: jobSkill.weight,
-        skill: jobSkill.skill
+        skill: jobSkill.skill ? {
+          id: jobSkill.skill.id,
+          name: jobSkill.skill.name,
+          category: jobSkill.skill.category
+        } : undefined
       })) || []
     };
+
+    console.log(`✅ Job transformation successful`);
+    return transformedJob;
+
   } catch (error) {
-    console.error('Error fetching job by ID:', error);
-    throw new Error('Failed to fetch job');
+    console.error('❌ Error in getJobById:', error);
+    
+    // Handle specific Prisma errors
+    if (error instanceof Error) {
+      if (error.message.includes('Invalid UUID')) {
+        console.log('❌ Invalid job ID format');
+        return null;
+      }
+      
+      if (error.message.includes('Connection')) {
+        console.error('❌ Database connection error');
+        throw new Error('Database connection failed');
+      }
+      
+      console.error('❌ Database error:', error.message);
+      throw new Error(`Failed to fetch job: ${error.message}`);
+    }
+    
+    throw new Error('Failed to fetch job from database');
   }
 }
 

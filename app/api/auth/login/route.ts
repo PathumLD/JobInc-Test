@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     // Check if candidate has a profile (for candidates only)
     let hasProfile = false;
-    let isFirstLogin = user.is_first_login || false;
+    const isFirstLogin = user.is_first_login || false;
 
     if (user.role === 'candidate') {
       const candidateProfile = await prisma.candidate.findUnique({

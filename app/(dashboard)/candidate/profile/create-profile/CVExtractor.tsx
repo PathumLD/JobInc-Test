@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2, X, Info } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, X } from 'lucide-react';
 import type { UnifiedProfileData, CVDocument } from '@/lib/data-transformer';
 
 interface CVExtractorProps {
@@ -36,10 +36,10 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
   const { setValue, getValues, watch } = useFormContext<UnifiedProfileData>();
 
   // Watch form state for CV-related data
-  const cvDocuments = watch('cv_documents') || [];
+  // const cvDocuments = watch('cv_documents') || [];
   const cvProcessingStatus = watch('cv_processing_status') || 'none';
-  const cvExtractionCompleted = watch('cv_extraction_completed') || false;
-  const uploadedCvIds = watch('uploaded_cv_ids') || [];
+  // const cvExtractionCompleted = watch('cv_extraction_completed') || false;
+  // const uploadedCvIds = watch('uploaded_cv_ids') || [];
 
   // Local state for uploaded CVs (derived from form state)
   const [uploadedCVs, setUploadedCVs] = useState<UploadedCV[]>([]);
@@ -54,14 +54,14 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
       
       // Convert CVDocument to UploadedCV format
       const existingUploadedCVs: UploadedCV[] = existingCvDocuments.map(doc => ({
-        id: doc.id,
-        resume_url: doc.resume_url,
-        original_filename: doc.original_filename,
-        file_size: doc.file_size,
-        file_type: doc.file_type,
-        is_primary: doc.is_primary,
-        is_allow_fetch: doc.is_allow_fetch,
-        uploaded_at: doc.uploaded_at,
+        id: doc.id ?? '',
+        resume_url: doc.resume_url ?? '',
+        original_filename: doc.original_filename ?? '',
+        file_size: doc.file_size ?? 0,
+        file_type: doc.file_type ?? '',
+        is_primary: doc.is_primary ?? false,
+        is_allow_fetch: doc.is_allow_fetch ?? false,
+        uploaded_at: doc.uploaded_at ?? '',
         extractedData: undefined // We don't store extracted data in CV documents
       }));
       
@@ -214,7 +214,8 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
         // Store extracted data in form state
         setValue('first_name', extractedData.first_name || '');
         setValue('last_name', extractedData.last_name || '');
-        setValue('phone', extractedData.phone || '');
+        setValue('phone1', extractedData.phone1 || '');
+        setValue('phone2', extractedData.phone2 || '');
         setValue('location', extractedData.location || '');
         setValue('linkedin_url', extractedData.linkedin_url || '');
         setValue('github_url', extractedData.github_url || '');
@@ -248,7 +249,7 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
         }
         if (extractedData.candidate_skills?.length > 0) {
           setValue('candidate_skills', extractedData.candidate_skills);
-          const skillNames = extractedData.candidate_skills.map(skill => skill.skill_name).filter(name => name);
+          const skillNames = extractedData.candidate_skills.map((skill: { skill_name: string }) => skill.skill_name).filter((name: string) => name);
           setValue('skills', skillNames);
         }
         if (extractedData.accomplishments?.length > 0) {
@@ -397,20 +398,6 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
 
   return (
     <div className="space-y-6">
-      {/* Information Banner */}
-      {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <Info className="h-5 w-5 text-blue-500 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-medium text-blue-800">CV Upload Information</h3>
-            <p className="text-sm text-blue-700 mt-1">
-              Upload your CV to automatically extract and populate profile information. 
-              Files are immediately uploaded to secure cloud storage and linked to your account.
-              Your CV data will be preserved when navigating between form sections.
-            </p>
-          </div>
-        </div>
-      </div> */}
 
       {/* Processing Status Indicator */}
       {cvProcessingStatus !== 'none' && (
@@ -537,26 +524,6 @@ export default function CVExtractor({ onDataExtracted, onSectionComplete }: CVEx
           </div>
         )}
       </div>
-
-      {/* Status Messages */}
-      {/* {extractionStatus === 'success' && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-4">
-          <div className="flex">
-            <CheckCircle className="h-5 w-5 text-green-400" />
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">
-                CV uploaded and processed successfully!
-              </h3>
-              <div className="mt-2 text-sm text-green-700">
-                <p>
-                  Your CV has been uploaded to secure cloud storage and data has been extracted to populate the form fields.
-                  This data will be preserved when navigating between form sections.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )} */}
 
       {extractionStatus === 'error' && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">

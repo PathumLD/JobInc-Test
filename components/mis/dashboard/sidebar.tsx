@@ -52,12 +52,12 @@ const navigationItems = [
   },
   {
     name: 'Job Management',
-    href: '/mis/jobs',
+    href: '/mis/jobs/jobs',
     icon: Briefcase,
     description: 'Monitor and manage job postings',
     submenu: [
       { name: 'Create Job', href: '/mis/jobs/create' },
-      { name: 'All Jobs', href: '/mis/jobs' },
+      { name: 'All Jobs', href: '/mis/jobs/jobs' },
       { name: 'Active Jobs', href: '/mis/jobs/active' },
       { name: 'Pending Approval', href: '/mis/jobs/pending' },
       { name: 'Expired Jobs', href: '/mis/jobs/expired' }

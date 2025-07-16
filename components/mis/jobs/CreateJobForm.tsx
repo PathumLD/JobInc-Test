@@ -38,8 +38,8 @@ import {
 } from 'lucide-react';
 
 import { jobFormSchema, JobFormData } from '@/lib/validations/job';
-import { createJob } from '@/lib/api/jobs';
-import { fetchAccessibleCompanies } from '@/lib/api/companies';
+import { createJob } from '@/app/api/jobs/jobs';
+import { fetchAccessibleCompanies } from '@/app/api/companies/companies';
 import { 
   JobType, 
   ExperienceLevel, 
