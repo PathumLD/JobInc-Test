@@ -16,7 +16,7 @@ export default function CreateJobPage() {
 
   const handleJobCreated = (jobId: string) => {
     // Redirect to job details or jobs list after successful creation
-    router.push(`/mis/jobs/${jobId}`);
+    router.push(`/mis/jobs/jobs/${jobId}`);
     
     // You could also show a success toast/notification here
     // toast.success('Job created successfully!');
