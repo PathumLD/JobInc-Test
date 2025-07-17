@@ -233,6 +233,57 @@ export const jobFormSchema = z.object({
   }))
 });
 
+// Update validation schema (similar to create but for updates)
+export const updateJobSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
+  description: z.string().min(1, 'Description is required').max(10000, 'Description must be less than 10000 characters'),
+  requirements: z.string().max(5000, 'Requirements must be less than 5000 characters').optional(),
+  responsibilities: z.string().max(5000, 'Responsibilities must be less than 5000 characters').optional(),
+  benefits: z.string().max(5000, 'Benefits must be less than 5000 characters').optional(),
+  
+  // Updated to match your schema enum values
+  job_type: z.enum(['full_time', 'part_time', 'contract', 'internship', 'freelance']),
+  experience_level: z.enum(['entry_level', 'mid_level', 'senior_level', 'executive_level']),
+  remote_type: z.enum(['onsite', 'remote', 'hybrid']),
+  
+  location: z.string().max(200, 'Location must be less than 200 characters').optional(),
+  salary_min: z.number().positive('Minimum salary must be positive').optional(),
+  salary_max: z.number().positive('Maximum salary must be positive').optional(),
+  currency: z.string().length(3, 'Currency must be a 3-letter code').default('USD'),
+  salary_type: z.enum(['annual', 'monthly', 'weekly', 'daily', 'hourly']).default('annual'),
+  equity_offered: z.boolean().default(false),
+  ai_skills_required: z.boolean().default(false),
+  application_deadline: z.string().datetime().optional(),
+  status: z.enum(['draft', 'published', 'paused', 'closed', 'archived']).default('draft'),
+  priority_level: z.number().int().min(1).max(5).default(1),
+  
+  // Custom company information
+  customCompanyName: z.string().min(1, 'Company name is required').max(200, 'Company name must be less than 200 characters'),
+  customCompanyEmail: z.string().email('Valid email is required').max(200, 'Email must be less than 200 characters').optional(),
+  customCompanyPhone: z.string().max(50, 'Phone must be less than 50 characters').optional(),
+  customCompanyWebsite: z.string().url('Valid URL is required').max(500, 'Website URL must be less than 500 characters').optional(),
+  
+  // Skills (updated to match your schema enum values)
+  skills: z.array(z.object({
+    skill_name: z.string().min(1, 'Skill name is required').max(100, 'Skill name must be less than 100 characters'),
+    required_level: z.enum(['nice_to_have', 'preferred', 'required', 'must_have']),
+    proficiency_level: z.enum(['beginner', 'intermediate', 'advanced', 'expert']),
+    years_required: z.number().int().min(0).max(50).optional(),
+    weight: z.number().min(0.1).max(10).default(1.0)
+  })).optional()
+}).refine(data => {
+  // Ensure salary_max is greater than salary_min if both are provided
+  if (data.salary_min && data.salary_max) {
+    return data.salary_max >= data.salary_min;
+  }
+  return true;
+}, {
+  message: 'Maximum salary must be greater than or equal to minimum salary',
+  path: ['salary_max']
+});
+
+
 // Type exports
 export type CreateJobData = z.infer<typeof createJobSchema>;
 export type JobFormData = z.infer<typeof jobFormSchema>;
+export type UpdateJobData = z.infer<typeof updateJobSchema>;

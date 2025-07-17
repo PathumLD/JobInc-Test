@@ -46,19 +46,6 @@ export default function CreateJobPage() {
                 <h1 className="text-lg font-semibold text-gray-900">Create Job</h1>
               </div>
             </div>
-            
-            {/* Breadcrumb */}
-            <nav className="flex items-center space-x-2 text-sm text-gray-500">
-              <Link href="/mis/dashboard" className="hover:text-gray-700">
-                Dashboard
-              </Link>
-              <span>/</span>
-              <Link href="/mis/jobs" className="hover:text-gray-700">
-                Jobs
-              </Link>
-              <span>/</span>
-              <span className="text-gray-900">Create</span>
-            </nav>
           </div>
         </div>
       </div>
@@ -70,26 +57,6 @@ export default function CreateJobPage() {
           onCancel={handleCancel}
         />
       </div>
-
-      {/* Help Section */}
-      {/* <div className="max-w-4xl mx-auto px-6 pb-8">
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium text-blue-900 mb-2">Need Help?</h3>
-            <div className="text-blue-700 space-y-2">
-              <p className="text-sm">
-                <strong>Company Information:</strong> Provide the company details including name, email, phone, and website for the job posting.
-              </p>
-              <p className="text-sm">
-                <strong>Skills:</strong> Add relevant skills with appropriate proficiency levels to help match the right candidates.
-              </p>
-              <p className="text-sm">
-                <strong>Status:</strong> Use "Draft" to save without publishing, or "Published" to make the job live immediately.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div> */}
     </div>
   );
 }

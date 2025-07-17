@@ -187,3 +187,14 @@ export interface JobFormData {
     weight: string;
   }[];
 }
+
+export interface UpdateJobResponse {
+  success: boolean;
+  data?: Job;
+  error?: string;
+  message?: string;
+  details?: Array<{
+    field: string;
+    message: string;
+  }>;
+}

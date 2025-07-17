@@ -1,4 +1,4 @@
-// app/api/jobs/[id]/status/route.ts
+// app/api/jobs/[id]/status/route.ts - Fixed for Next.js 15
 
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtDecode } from 'jwt-decode';
@@ -17,11 +17,16 @@ interface JWTPayload {
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
     console.log('=== UPDATING JOB STATUS ===');
-    console.log('Job ID:', params.id);
+    
+    // Await params to fix Next.js 15 compatibility issue
+    const resolvedParams = await params;
+    const jobId = resolvedParams.id;
+    
+    console.log('Job ID:', jobId);
 
     // Get the token from Authorization header
     const authHeader = request.headers.get('authorization');
@@ -66,7 +71,6 @@ export async function PATCH(
       );
     }
 
-    const jobId = params.id;
     if (!jobId) {
       console.log('❌ No job ID provided');
       return NextResponse.json(

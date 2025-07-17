@@ -14,18 +14,7 @@ import {
   DollarSign,
   Clock,
   Star,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Pause,
-  Play
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { ExperienceLevel, Job, JobStatus, JobType, RemoteType } from '@/lib/types/jobs/job';
 
 
@@ -35,8 +24,7 @@ interface JobCardProps {
   onDelete?: (jobId: string) => void;
 }
 
-export default function JobCard({ job, onStatusChange, onDelete }: JobCardProps) {
-  const [isLoading, setIsLoading] = useState(false);
+export default function JobCard({ job }: JobCardProps) {
 
   const getStatusColor = (status: JobStatus) => {
     switch (status) {
@@ -109,23 +97,6 @@ export default function JobCard({ job, onStatusChange, onDelete }: JobCardProps)
     });
   };
 
-  const handleStatusChange = async (newStatus: JobStatus) => {
-    if (onStatusChange) {
-      setIsLoading(true);
-      try {
-        await onStatusChange(job.id, newStatus);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const handleDelete = () => {
-    if (onDelete && confirm('Are you sure you want to delete this job?')) {
-      onDelete(job.id);
-    }
-  };
-
   const getCompanyName = () => {
     return job.company?.name || job.customCompanyName || 'Company Name';
   };
@@ -159,7 +130,7 @@ export default function JobCard({ job, onStatusChange, onDelete }: JobCardProps)
             </div>
           </div>
 
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
                 <MoreVertical className="h-4 w-4" />
@@ -199,7 +170,7 @@ export default function JobCard({ job, onStatusChange, onDelete }: JobCardProps)
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </div>
       </CardHeader>
 

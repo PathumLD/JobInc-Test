@@ -1,6 +1,7 @@
-// lib/api/jobs.ts
+// api/jobs/jobs.ts
 
 import { CreateJobRequest, CreateJobResponse, Job, JobStatus } from '@/lib/types/jobs/job';
+import { UpdateJobData } from '@/lib/validations/job';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -302,4 +303,108 @@ export function handleJobApiError(error: unknown): string {
     return error.message;
   }
   return 'An unexpected error occurred';
+}
+
+
+
+ //Update a job
+
+export async function updateJob(jobId: string, jobData: UpdateJobData): Promise<Job> {
+  try {
+    console.log('Making request to update job:', jobId);
+    console.log('Update data:', jobData);
+    
+    const response = await fetch(`/api/jobs/${jobId}/edit`, {
+      method: 'PUT',
+      headers: createAuthHeaders(),
+      body: JSON.stringify(jobData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      
+      if (response.status === 401) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      if (response.status === 403) {
+        throw new Error('Access denied. You can only edit jobs you created.');
+      }
+      if (response.status === 404) {
+        throw new Error('Job not found.');
+      }
+      if (response.status === 400) {
+        const message = errorData.message || 'Invalid job data provided';
+        const details = errorData.details;
+        if (details && Array.isArray(details)) {
+          const fieldErrors = details.map((detail: any) => `${detail.field}: ${detail.message}`).join(', ');
+          throw new Error(`${message} - ${fieldErrors}`);
+        }
+        throw new Error(message);
+      }
+      if (response.status === 409) {
+        throw new Error('A job with similar details already exists.');
+      }
+      
+      throw new Error(errorData.message || `Failed to update job: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (!result.success || !result.data) {
+      throw new Error(result.error || 'Failed to update job');
+    }
+
+    return result.data;
+  } catch (error) {
+    console.error('Error updating job:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('An unexpected error occurred while updating the job');
+  }
+}
+
+
+// Get job for editing (includes all fields)
+
+export async function fetchJobForEdit(jobId: string): Promise<Job> {
+  try {
+    console.log('Fetching job for edit:', jobId);
+    
+    const response = await fetch(`/api/jobs/${jobId}`, {
+      method: 'GET',
+      headers: createAuthHeaders(),
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      
+      if (response.status === 401) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      if (response.status === 403) {
+        throw new Error('Access denied. You can only edit jobs you created.');
+      }
+      if (response.status === 404) {
+        throw new Error('Job not found.');
+      }
+      
+      throw new Error(errorData.message || `Failed to fetch job: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (!result.success || !result.data) {
+      throw new Error(result.error || 'Failed to fetch job');
+    }
+
+    return result.data;
+  } catch (error) {
+    console.error('Error fetching job for edit:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('An unexpected error occurred while fetching the job');
+  }
 }

@@ -218,7 +218,7 @@ export default function JobDetailPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link href={`/mis/jobs/${job.id}/edit`}>
+                    <Link href={`/mis/jobs/jobs/${job.id}/edit`}>
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Job
                     </Link>
@@ -262,7 +262,7 @@ export default function JobDetailPage() {
                       <Badge className={getStatusColor(job.status)}>
                         {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
                       </Badge>
-                      {job.priority_level > 2 && (
+                      {job.priority_level > 4 && (
                         <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
                           <Star className="h-3 w-3 mr-1" />
                           High Priority

@@ -1,4 +1,4 @@
-// app/api/jobs/[id]/route.ts
+// app/api/jobs/[id]/route.ts - Fixed for Next.js 15
 
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtDecode } from 'jwt-decode';
@@ -16,11 +16,16 @@ interface JWTPayload {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
     console.log('=== FETCHING JOB BY ID ===');
-    console.log('Job ID:', params.id);
+    
+    // Await params to fix Next.js 15 compatibility issue
+    const resolvedParams = await params;
+    const jobId = resolvedParams.id;
+    
+    console.log('Job ID:', jobId);
 
     // Get the token from Authorization header
     const authHeader = request.headers.get('authorization');
@@ -65,7 +70,6 @@ export async function GET(
       );
     }
 
-    const jobId = params.id;
     if (!jobId) {
       console.log('❌ No job ID provided');
       return NextResponse.json(
@@ -129,3 +133,4 @@ export async function GET(
     );
   }
 }
+
