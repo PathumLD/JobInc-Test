@@ -25,9 +25,6 @@ export default function VolunteeringForm({
 
   //  CRITICAL FIX: Only initialize if truly empty and no meaningful data
   useEffect(() => {
-    console.log(' VolunteeringForm useEffect triggered');
-    console.log(' Current volunteering length:', volunteering.length);
-    console.log(' Current volunteering data:', volunteering);
     
     // Check if we have any meaningful data (extracted or manually entered)
     const hasMeaningfulData = volunteering.some(v => 
@@ -36,7 +33,6 @@ export default function VolunteeringForm({
       (v.description && v.description.trim() !== '')
     );
     
-    console.log(' Has meaningful data?', hasMeaningfulData);
     
     // Only initialize with empty entry if:
     // 1. No volunteering entries exist, OR
@@ -105,7 +101,7 @@ export default function VolunteeringForm({
     }
     
     setValue('volunteering', updatedVolunteering);
-    console.log(' Updated volunteering:', updatedVolunteering);
+    // console.log(' Updated volunteering:', updatedVolunteering);
   };
 
   return (

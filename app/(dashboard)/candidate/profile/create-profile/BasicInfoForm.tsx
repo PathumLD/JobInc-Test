@@ -60,16 +60,16 @@ export default function BasicInfoForm({
       console.log('📋 Initializing BasicInfoForm with existing data...');
       
       // Check if there's existing form data
-      const existingData = getValues();
+      // const existingData = getValues();
       
-      if (existingData) {
-        console.log('📊 Found existing form data:', {
-          hasBasicInfo: !!(existingData.first_name && existingData.last_name),
-          hasCvDocuments: (existingData.cv_documents || []).length > 0,
-          cvProcessingStatus: (existingData as any).cv_processing_status || 'none',
-          cvExtractionCompleted: existingData.cv_extraction_completed || false
-        });
-      }
+      // if (existingData) {
+      //   console.log('📊 Found existing form data:', {
+      //     hasBasicInfo: !!(existingData.first_name && existingData.last_name),
+      //     hasCvDocuments: (existingData.cv_documents || []).length > 0,
+      //     cvProcessingStatus: (existingData as any).cv_processing_status || 'none',
+      //     cvExtractionCompleted: existingData.cv_extraction_completed || false
+      //   });
+      // }
       
       setFormInitialized(true);
     }
@@ -85,55 +85,55 @@ export default function BasicInfoForm({
   };
 
   // Get CV processing status display
-  const getCvStatusDisplay = () => {
-    if (cvDocuments.length === 0) return null;
+  // const getCvStatusDisplay = () => {
+  //   if (cvDocuments.length === 0) return null;
 
-    const statusConfig = {
-      completed: {
-        icon: CheckCircle,
-        color: 'text-green-500',
-        bgColor: 'bg-green-50',
-        borderColor: 'border-green-200',
-        textColor: 'text-green-800',
-        message: 'CV data has been automatically extracted and populated in the form fields below.'
-      },
-      failed: {
-        icon: AlertCircle,
-        color: 'text-yellow-500',
-        bgColor: 'bg-yellow-50',
-        borderColor: 'border-yellow-200',
-        textColor: 'text-yellow-800',
-        message: 'CV was uploaded successfully but automatic data extraction failed. Please fill the form manually.'
-      },
-      none: {
-        icon: FileText,
-        color: 'text-blue-500',
-        bgColor: 'bg-blue-50',
-        borderColor: 'border-blue-200',
-        textColor: 'text-blue-800',
-        message: 'CV is uploaded and ready. Data extraction was not attempted.'
-      }
-    };
+  //   const statusConfig = {
+  //     completed: {
+  //       icon: CheckCircle,
+  //       color: 'text-green-500',
+  //       bgColor: 'bg-green-50',
+  //       borderColor: 'border-green-200',
+  //       textColor: 'text-green-800',
+  //       message: 'CV data has been automatically extracted and populated in the form fields below.'
+  //     },
+  //     failed: {
+  //       icon: AlertCircle,
+  //       color: 'text-yellow-500',
+  //       bgColor: 'bg-yellow-50',
+  //       borderColor: 'border-yellow-200',
+  //       textColor: 'text-yellow-800',
+  //       message: 'CV was uploaded successfully but automatic data extraction failed. Please fill the form manually.'
+  //     },
+  //     none: {
+  //       icon: FileText,
+  //       color: 'text-blue-500',
+  //       bgColor: 'bg-blue-50',
+  //       borderColor: 'border-blue-200',
+  //       textColor: 'text-blue-800',
+  //       message: 'CV is uploaded and ready. Data extraction was not attempted.'
+  //     }
+  //   };
 
-    const config = statusConfig[(cvProcessingStatus as unknown) as keyof typeof statusConfig] || statusConfig.none;
-    const Icon = config.icon;
+  //   const config = statusConfig[(cvProcessingStatus as unknown) as keyof typeof statusConfig] || statusConfig.none;
+  //   const Icon = config.icon;
 
-    return (
-      <div className={`${config.bgColor} ${config.borderColor} border rounded-lg p-4 mb-6`}>
-        <div className="flex items-start space-x-3">
-          <Icon className={`h-5 w-5 ${config.color} mt-0.5`} />
-          <div>
-            <h3 className={`text-sm font-medium ${config.textColor}`}>
-              CV Processing Status: {cvProcessingStatus.charAt(0).toUpperCase() + cvProcessingStatus.slice(1)}
-            </h3>
-            <p className={`text-sm ${config.textColor} mt-1`}>
-              {config.message}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  //   return (
+  //     <div className={`${config.bgColor} ${config.borderColor} border rounded-lg p-4 mb-6`}>
+  //       <div className="flex items-start space-x-3">
+  //         <Icon className={`h-5 w-5 ${config.color} mt-0.5`} />
+  //         <div>
+  //           <h3 className={`text-sm font-medium ${config.textColor}`}>
+  //             CV Processing Status: {cvProcessingStatus.charAt(0).toUpperCase() + cvProcessingStatus.slice(1)}
+  //           </h3>
+  //           <p className={`text-sm ${config.textColor} mt-1`}>
+  //             {config.message}
+  //           </p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   const onSubmit = async (data: UnifiedProfileData) => {
     setIsSubmitting(true);
@@ -204,7 +204,7 @@ export default function BasicInfoForm({
   return (
     <div className="space-y-8">
       {/* CV Processing Status Display */}
-      {getCvStatusDisplay()}
+      {/* {getCvStatusDisplay()} */}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Personal Information Section */}
@@ -497,7 +497,7 @@ export default function BasicInfoForm({
         )}
 
         {/* Data Preservation Notice */}
-        {cvDocuments.length > 0 && (
+        {/* {cvDocuments.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start space-x-3">
               <CheckCircle className="h-5 w-5 text-blue-500 mt-0.5" />
@@ -510,7 +510,7 @@ export default function BasicInfoForm({
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Submit Button */}
         <Button type="submit" disabled={isSubmitting} className="w-full">

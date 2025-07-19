@@ -211,11 +211,11 @@ export default function WorkExperiencesForm({
       .map((acc: AccomplishmentFormData, index: number) => ({ ...acc, originalIndex: index }))
       .filter(acc => acc.temp_work_experience_index === experienceIndex);
     
-    console.log(`Getting accomplishments for experience ${experienceIndex}:`, {
-      total: accomplishments.length,
-      filtered: filteredAccomplishments.length,
-      accomplishments: filteredAccomplishments
-    });
+    // console.log(`Getting accomplishments for experience ${experienceIndex}:`, {
+    //   total: accomplishments.length,
+    //   filtered: filteredAccomplishments.length,
+    //   accomplishments: filteredAccomplishments
+    // });
     
     return filteredAccomplishments;
   };
@@ -229,11 +229,11 @@ export default function WorkExperiencesForm({
 
   // Debug: Log current state
   useEffect(() => {
-    console.log('Current form state:', {
-      workExperiences: workExperiences.length,
-      accomplishments: accomplishments.length,
-      accomplishmentsData: accomplishments
-    });
+    // console.log('Current form state:', {
+    //   workExperiences: workExperiences.length,
+    //   accomplishments: accomplishments.length,
+    //   accomplishmentsData: accomplishments
+    // });
   }, [workExperiences, accomplishments]);
 
   return (
