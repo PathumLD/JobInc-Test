@@ -59,18 +59,6 @@ export default function BasicInfoForm({
     if (!formInitialized) {
       console.log('📋 Initializing BasicInfoForm with existing data...');
       
-      // Check if there's existing form data
-      // const existingData = getValues();
-      
-      // if (existingData) {
-      //   console.log('📊 Found existing form data:', {
-      //     hasBasicInfo: !!(existingData.first_name && existingData.last_name),
-      //     hasCvDocuments: (existingData.cv_documents || []).length > 0,
-      //     cvProcessingStatus: (existingData as any).cv_processing_status || 'none',
-      //     cvExtractionCompleted: existingData.cv_extraction_completed || false
-      //   });
-      // }
-      
       setFormInitialized(true);
     }
   }, [getValues, formInitialized]);
@@ -83,57 +71,6 @@ export default function BasicInfoForm({
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-
-  // Get CV processing status display
-  // const getCvStatusDisplay = () => {
-  //   if (cvDocuments.length === 0) return null;
-
-  //   const statusConfig = {
-  //     completed: {
-  //       icon: CheckCircle,
-  //       color: 'text-green-500',
-  //       bgColor: 'bg-green-50',
-  //       borderColor: 'border-green-200',
-  //       textColor: 'text-green-800',
-  //       message: 'CV data has been automatically extracted and populated in the form fields below.'
-  //     },
-  //     failed: {
-  //       icon: AlertCircle,
-  //       color: 'text-yellow-500',
-  //       bgColor: 'bg-yellow-50',
-  //       borderColor: 'border-yellow-200',
-  //       textColor: 'text-yellow-800',
-  //       message: 'CV was uploaded successfully but automatic data extraction failed. Please fill the form manually.'
-  //     },
-  //     none: {
-  //       icon: FileText,
-  //       color: 'text-blue-500',
-  //       bgColor: 'bg-blue-50',
-  //       borderColor: 'border-blue-200',
-  //       textColor: 'text-blue-800',
-  //       message: 'CV is uploaded and ready. Data extraction was not attempted.'
-  //     }
-  //   };
-
-  //   const config = statusConfig[(cvProcessingStatus as unknown) as keyof typeof statusConfig] || statusConfig.none;
-  //   const Icon = config.icon;
-
-  //   return (
-  //     <div className={`${config.bgColor} ${config.borderColor} border rounded-lg p-4 mb-6`}>
-  //       <div className="flex items-start space-x-3">
-  //         <Icon className={`h-5 w-5 ${config.color} mt-0.5`} />
-  //         <div>
-  //           <h3 className={`text-sm font-medium ${config.textColor}`}>
-  //             CV Processing Status: {cvProcessingStatus.charAt(0).toUpperCase() + cvProcessingStatus.slice(1)}
-  //           </h3>
-  //           <p className={`text-sm ${config.textColor} mt-1`}>
-  //             {config.message}
-  //           </p>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // };
 
   const onSubmit = async (data: UnifiedProfileData) => {
     setIsSubmitting(true);

@@ -272,19 +272,7 @@ export const processExtractedData = async (file: File): Promise<ExtractedData> =
     console.log(' Raw AI response preview:', responseText.substring(0, 500) + '...');
     
     const extractedData = extractJSONFromText(responseText);
-    
-    // Log extraction summary
-    // console.log(' Extracted data summary:', {
-    //   basic_info: !!extractedData.basic_info,
-    //   work_experiences: extractedData.work_experiences?.length || 0,
-    //   educations: extractedData.educations?.length || 0,
-    //   certificates: extractedData.certificates?.length || 0,
-    //   projects: extractedData.projects?.length || 0,
-    //   skills: extractedData.skills?.length || 0,
-    //   awards: extractedData.awards?.length || 0,
-    //   volunteering: extractedData.volunteering?.length || 0,
-    //   accomplishments: extractedData.accomplishments?.length || 0,
-    // });
+  
     
     return extractedData;
   } catch (error) {

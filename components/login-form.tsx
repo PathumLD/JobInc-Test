@@ -85,19 +85,36 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Enhanced function to check if candidate has completed profile
   const checkCandidateProfileStatus = async (token: string) => {
     try {
       const response = await fetch('/api/candidate/profile/display-profile', {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
-      return response.ok; // true if profile exists, false if not
+      if (response.status === 404) {
+        // Profile doesn't exist
+        return { hasProfile: false, isCreated: false };
+      }
+      
+      if (response.ok) {
+        const profileData = await response.json();
+        // Check if profile exists and is_created is true
+        return { 
+          hasProfile: true, 
+          isCreated: profileData.is_created === true 
+        };
+      }
+      
+      // If other error, assume no profile
+      return { hasProfile: false, isCreated: false };
     } catch (error) {
       console.error('Error checking profile status:', error);
-      return false; // Assume no profile on error
+      return { hasProfile: false, isCreated: false };
     }
   };
 
@@ -116,39 +133,55 @@ export default function LoginPage() {
       const data = await res.json();
       
       if (res.ok) {
-        setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
         localStorage.setItem('token', data.token);
         
         const payload = jwtDecode<{ role: string; userId: string }>(data.token);
         let dashboardPath = '/dashboard';
+        let redirectMessage = 'Login successful! Redirecting...';
         
         if (payload.role === 'candidate') {
-          // Check if candidate has a profile
-          const hasProfile = await checkCandidateProfileStatus(data.token);
+          // For candidates, check both API response and profile status
+          const profileStatus = await checkCandidateProfileStatus(data.token);
           
-          if (!hasProfile) {
-            // First-time candidate without profile - redirect to create profile
+          console.log('Profile check results:', {
+            apiResponse: data.is_created,
+            profileCheck: profileStatus
+          });
+
+          // Redirect to profile creation if:
+          // 1. API says profile is not created (is_created === false), OR
+          // 2. Profile check shows no profile or incomplete profile
+          if (data.is_created === false || !profileStatus.hasProfile || !profileStatus.isCreated) {
             dashboardPath = '/candidate/profile/create-profile';
-            setMessage({ type: 'success', text: 'Welcome! Let\'s create your profile...' });
+            redirectMessage = 'Welcome! Let\'s create your profile...';
+            setMessage({ type: 'success', text: redirectMessage });
           } else {
-            // Candidate with existing profile - go to dashboard
+            // Profile exists and is complete
             dashboardPath = '/candidate/dashboard';
+            setMessage({ type: 'success', text: redirectMessage });
           }
         } else if (payload.role === 'employer') {
           dashboardPath = '/employer/dashboard';
+          setMessage({ type: 'success', text: redirectMessage });
         } else if (payload.role === 'mis') {
           dashboardPath = '/mis/dashboard';
+          setMessage({ type: 'success', text: redirectMessage });
         } else if (payload.role === 'agency') {
           dashboardPath = '/agency/dashboard';
+          setMessage({ type: 'success', text: redirectMessage });
+        } else {
+          setMessage({ type: 'success', text: redirectMessage });
         }
         
+        // Redirect after showing success message
         setTimeout(() => {
           window.location.href = dashboardPath;
         }, 1500);
       } else {
         setMessage({ type: 'error', text: data.error || 'Login failed. Please check your credentials.' });
       }
-    } catch {
+    } catch (error) {
+      console.error('Login error:', error);
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
       setIsLoading(false);
@@ -158,8 +191,11 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn("google");
-    } catch {
+      await signIn("google", { 
+        callbackUrl: '/auth/callback' // You might want to handle Google OAuth callback separately
+      });
+    } catch (error) {
+      console.error('Google sign-in error:', error);
       setMessage({ type: 'error', text: 'Google sign-in failed. Please try again.' });
     } finally {
       setIsGoogleLoading(false);
@@ -315,7 +351,7 @@ export default function LoginPage() {
           )}
 
           {/* Login Form */}
-          <div onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -375,7 +411,6 @@ export default function LoginPage() {
             <Button 
               type="submit" 
               disabled={isLoading || isGoogleLoading}
-              onClick={handleSubmit}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 h-10"
             >
               {isLoading ? (
@@ -421,7 +456,7 @@ export default function LoginPage() {
                 </>
               )}
             </Button>
-          </div>
+          </form>
         </div>
       </div>
     </div>

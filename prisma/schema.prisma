@@ -345,6 +345,7 @@ model Candidate {
   interview_ready               Boolean?           @default(false)
   pre_qualified                 Boolean?           @default(false)
   profile_completion_percentage Int?               @default(0)
+  is_created                    Boolean            @default(false)
   created_at                    DateTime?          @default(now())
   updated_at                    DateTime?          @updatedAt
   
